@@ -15,6 +15,8 @@ class TextIDE {
             return cursor_position;
         if (keys.down['control'] && keys.control_actions.include(key))
             return this.handle_control_action(key, cursor_position);
+        if (keys.down['control'] && keys.arrow.include(key))
+            return this.handle_control_arrow(key, cursor_position);
         if (keys.arrow.include(key))
             return this.handle_arrow(key, cursor_position);
         this.preffered_col = null;
@@ -173,6 +175,48 @@ class TextIDE {
                     };
         }
         return cursor_position;
+    }
+    handle_control_arrow(key, cursor_position) {
+        switch (key) {
+            case 'ArrowLeft':
+                let is_space_left = this.text_data[cursor_position.row][cursor_position.col - 1] === ' ';
+                let i = cursor_position.col - 1;
+                while (is_space_left && i >= 0) {
+                    is_space_left = this.text_data[cursor_position.row][i - 1] === ' ';
+                    i--;
+                }
+                while (!is_space_left && i >= 0) {
+                    is_space_left = this.text_data[cursor_position.row][i - 1] === ' ';
+                    i--;
+                }
+                return {
+                    row: cursor_position.row,
+                    col: i + 1,
+                };
+            case 'ArrowRight':
+                let is_space_right = this.text_data[cursor_position.row][cursor_position.col] === ' ';
+                let j = cursor_position.col;
+                while (is_space_right && j <= this.text_data[cursor_position.row].length) {
+                    is_space_right = this.text_data[cursor_position.row][j] === ' ';
+                    j++;
+                }
+                while (!is_space_right && j <= this.text_data[cursor_position.row].length) {
+                    is_space_right = this.text_data[cursor_position.row][j] === ' ';
+                    j++;
+                }
+                return {
+                    row: cursor_position.row,
+                    col: j - 1,
+                };
+            case 'ArrowUp':
+                break;
+            case 'ArrowDown':
+                break;
+        }
+        return {
+            row: cursor_position.row,
+            col: 1,
+        };
     }
     handle_enter(cursor_position) {
         const before_cursor = this.text_data[cursor_position.row].slice(0, cursor_position.col);
@@ -345,13 +389,16 @@ class TextIDE {
     set_active_row(row) {
         if (row === this.active_row)
             return;
-        this.reset_active_row();
         const new_selected_row_el = document.getElementById(`line--${row}`);
+        if (new_selected_row_el === null)
+            return;
         new_selected_row_el.className = 'line-selected';
+        this.reset_active_row();
         this.active_row = row;
     }
     reset_active_row() {
         const selected_row = document.getElementById(`line--${this.active_row}`);
+        this.active_row = -1;
         if (selected_row)
             selected_row.className = 'line';
     }

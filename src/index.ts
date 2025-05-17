@@ -71,7 +71,6 @@ function handle_mouse_down(event: MouseEvent): void {
 
    const cursor_position = cursor.place(get_cursor_position(event), text_ide.text_data);
    text_area_element.className = 'ta-active';
-   // text_area_element.style.border = '1px solid #DDA853';
 
    text_ide.deselect();
 
