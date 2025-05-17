@@ -11,6 +11,10 @@
     --primary-fg: #A4C2A8;
     --accent: #ACEB98;
     --select-pointer: #A4C2A8;
+    --select-bg: #5A5A66;
+
+    --text-area-active: #A4C2A8;
+    --text-area-inactive: #5A5A66;
 }
 
 *,
@@ -43,7 +47,6 @@ body {
 }
 
 #text-area {
-    border: 1px solid grey;
     width: 80%;
     height: 80vh;
 
@@ -52,6 +55,14 @@ body {
     scrollbar-width: thin;
 
     box-sizing: border-box;
+}
+
+.ta-active {
+    border: 1px solid var(--text-area-active);
+}
+
+.ta-inactive {
+    border: 1px solid var(--text-area-inactive);
 }
 
 #text-area:hover {
@@ -75,8 +86,6 @@ body {
     background-color: transparent;
 }
 
-
-
 #ordered-list {
     min-width: calc(100% - 50px);
     width: fit-content;
@@ -93,7 +102,7 @@ body {
 }
 
 .select {
-    background-color: var(--select-pointer);
+    background-color: var(--select-bg);
     height: 100%;
     width: 0;
     position: relative;

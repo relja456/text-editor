@@ -6,6 +6,7 @@ class TextIDE {
    ordered_list_element: HTMLElement;
 
    text_data: string[] = [''];
+   clipboard: string[] = [''];
 
    active_row: number = -1;
    selected_rows: number[] = [];
@@ -18,6 +19,10 @@ class TextIDE {
 
    handle_keypress(key: string, cursor_position: row_col): row_col {
       if (keys.ignore.include(key)) return cursor_position;
+
+      if (keys.down['control'] && keys.control_actions.include(key))
+         return this.handle_control_action(key, cursor_position);
+
       if (keys.arrow.include(key)) return this.handle_arrow(key, cursor_position);
 
       this.preffered_col = null;
@@ -27,6 +32,24 @@ class TextIDE {
       if (key === 'Tab') return this.handle_tab(cursor_position);
 
       return this.handle_input(key, cursor_position);
+   }
+
+   handle_control_action(key: string, cursor_position: row_col): row_col {
+      switch (key) {
+         case 'c':
+            this.handle_copy(cursor_position);
+            return cursor_position;
+      }
+
+      return { row: 1, col: 1 };
+   }
+
+   handle_copy(cursor_position: row_col) {
+      this.selection === null
+         ? (this.clipboard = [this.text_data[cursor_position.row]])
+         : (this.clipboard = this.get_selected_text(this.text_data, this.selection));
+
+      console.log('copied text: ', this.clipboard);
    }
 
    handle_arrow(key: string, cursor_position: row_col): row_col {
@@ -153,6 +176,22 @@ class TextIDE {
          key +
          this.text_data[cursor_position.row].slice(cursor_position.col);
       return { row: cursor_position.row, col: cursor_position.col + 1 };
+   }
+
+   get_selected_text(text_data: string[], selection: { smaller: row_col; bigger: row_col }): string[] {
+      const whole_text = JSON.parse(JSON.stringify(text_data));
+      const selected_text = whole_text.slice(selection.smaller.row, selection.bigger.row + 1);
+
+      if (selected_text.length > 1) {
+         selected_text[0] = selected_text[0].slice(selection.smaller.col);
+         selected_text[selected_text.length - 1] = selected_text[selected_text.length - 1].slice(
+            0,
+            selection.bigger.col
+         );
+      } else {
+         selected_text[0] = selected_text[0].slice(selection.smaller.col, selection.bigger.col);
+      }
+      return selected_text;
    }
 
    select(pos0: row_col, pos1: row_col): void {

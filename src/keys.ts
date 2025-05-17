@@ -12,10 +12,22 @@ const ignore_codes = [
     'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'
 ];
 
+const control_actions = ['c']
+
 const hold_states = ['Control', 'Shift'];
+
 const down: { [key: string]: boolean } = { control: false, shift: false };
 
 const prevent_defaults = ['Tab', 'Space', 'Control'];
+
+export const keys = {
+   arrow: create_keys(arrow_codes),
+   ignore: create_keys(ignore_codes),
+   hold_states: create_keys(hold_states),
+   prevent_defaults: create_keys(prevent_defaults),
+   control_actions: create_keys(control_actions),
+   down: down,
+};
 
 function create_keys(codes: string[]): KeyCollection {
    return {
@@ -25,11 +37,3 @@ function create_keys(codes: string[]): KeyCollection {
       },
    };
 }
-
-export const keys = {
-   arrow: create_keys(arrow_codes),
-   ignore: create_keys(ignore_codes),
-   hold_states: create_keys(hold_states),
-   prevent_defaults: create_keys(prevent_defaults),
-   down: down,
-};
