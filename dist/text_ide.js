@@ -49,6 +49,7 @@ class TextIDE {
             ? (this.clipboard = [this.text_data[cursor_position.row]])
             : (this.clipboard = this.get_selected_text(this.text_data, this.selection));
         console.log('copied text: ', this.clipboard);
+        console.log(this.selection);
     }
     handle_cut(cursor_position) {
         this.handle_copy(cursor_position);

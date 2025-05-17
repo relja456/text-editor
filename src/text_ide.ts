@@ -60,6 +60,7 @@ class TextIDE {
          : (this.clipboard = this.get_selected_text(this.text_data, this.selection));
 
       console.log('copied text: ', this.clipboard);
+      console.log(this.selection);
    }
 
    handle_cut(cursor_position: row_col): row_col {
