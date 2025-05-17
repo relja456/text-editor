@@ -165,6 +165,15 @@ class TextIDE {
          this.text_data[cursor_position.row].slice(0, cursor_position.col) +
          key +
          this.text_data[cursor_position.row].slice(cursor_position.col);
+
+      global.char_width = (() => {
+         const text0 = document.getElementById('text--0');
+         if (text0 && text0.innerText.length > 0) {
+            return text0.getBoundingClientRect().width / text0.innerText.length;
+         }
+         return global.char_width;
+      })();
+
       return { row: cursor_position.row, col: cursor_position.col + 1 };
    }
 
@@ -286,8 +295,6 @@ class TextIDE {
 
       selected_el.style.left = `${indent}px`;
       selected_el.style.width = `${width}px`;
-
-      text_el.style.left = `-${indent}px`;
    }
 
    sort_selection(pos0: row_col, pos1: row_col): { smaller: row_col; bigger: row_col } {
@@ -340,7 +347,7 @@ class TextIDE {
             text_dom.className = 'text';
 
             line_dom.appendChild(select_dom);
-            select_dom.appendChild(text_dom);
+            line_dom.appendChild(text_dom);
             this.ordered_list_element.append(line_dom);
          }
 

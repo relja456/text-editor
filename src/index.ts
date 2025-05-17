@@ -3,8 +3,6 @@ import TextIDE from './text_ide.js';
 import global from './globals.js';
 import { keys } from './keys.js';
 
-global.char_width = 8.41;
-
 let is_ide_focused = false;
 const mouse = { down: false, start_position: { row: 0, col: 0 }, position: { x: 0, y: 0 } };
 

@@ -135,6 +135,13 @@ class TextIDE {
             this.text_data[cursor_position.row].slice(0, cursor_position.col) +
                 key +
                 this.text_data[cursor_position.row].slice(cursor_position.col);
+        global.char_width = (() => {
+            const text0 = document.getElementById('text--0');
+            if (text0 && text0.innerText.length > 0) {
+                return text0.getBoundingClientRect().width / text0.innerText.length;
+            }
+            return global.char_width;
+        })();
         return { row: cursor_position.row, col: cursor_position.col + 1 };
     }
     get_selected_text(text_data, selection) {
@@ -222,7 +229,6 @@ class TextIDE {
         const text_el = document.getElementById(`text--${row_num}`);
         selected_el.style.left = `${indent}px`;
         selected_el.style.width = `${width}px`;
-        text_el.style.left = `-${indent}px`;
     }
     sort_selection(pos0, pos1) {
         let smaller = null;
@@ -269,7 +275,7 @@ class TextIDE {
                 text_dom.id = `text--${id}`;
                 text_dom.className = 'text';
                 line_dom.appendChild(select_dom);
-                select_dom.appendChild(text_dom);
+                line_dom.appendChild(text_dom);
                 this.ordered_list_element.append(line_dom);
             }
             line_dom.style.height = `${global.line_height}px`;
