@@ -1,6 +1,6 @@
 import { keys } from './keys.js';
 import global from './globals.js';
-import row_col from './types.js';
+import row_col, { equals } from './types.js';
 
 class TextIDE {
    ordered_list_element: HTMLElement;
@@ -10,7 +10,7 @@ class TextIDE {
 
    active_row: number = -1;
    selected_rows: number[] = [];
-   selection: { smaller: row_col; bigger: row_col } | null = null;
+   selection: { start: row_col; finish: row_col } | null = null;
    preffered_col: number | null = null;
 
    constructor(ordered_list_element: HTMLElement) {
@@ -72,29 +72,11 @@ class TextIDE {
       return this.delete_selection();
    }
 
-   delete_selection(): row_col {
-      const selection = JSON.parse(JSON.stringify(this.selection));
-
-      this.deselect();
-
-      const { smaller, bigger } = selection;
-      if (smaller.row === bigger.row) {
-         // Single line selection
-         const line = this.text_data[smaller.row];
-         this.text_data[smaller.row] = line.slice(0, smaller.col) + line.slice(bigger.col);
-         return selection.smaller;
-      }
-
-      // Multi-line selection
-      const firstLine = this.text_data[smaller.row].slice(0, smaller.col);
-      const lastLine = this.text_data[bigger.row].slice(bigger.col);
-
-      // Remove lines in between
-      this.text_data.splice(smaller.row, bigger.row - smaller.row + 1, firstLine + lastLine);
-      return selection.smaller;
-   }
-
    handle_paste(cursor_position: row_col): row_col {
+      if (this.selection !== null) {
+         this.delete_selection();
+         this.deselect();
+      }
       if (this.clipboard.length === 0) return cursor_position;
       else if (this.clipboard.length === 1) {
          this.text_data[cursor_position.row] =
@@ -137,18 +119,19 @@ class TextIDE {
       const lines_total = this.text_data.length;
       const last_line_len = this.text_data[lines_total - 1].length;
 
+      let cursor_last = cursor_position;
       switch (key) {
          case 'ArrowLeft':
             this.preffered_col = null;
             if (cursor_position.row === 0 && cursor_position.col === 0) return cursor_position;
             if (cursor_position.col > 0)
-               return {
+               cursor_last = {
                   row: cursor_position.row,
                   col: cursor_position.col - 1,
                };
             if (cursor_position.col === 0) {
                const prev_col_len = this.text_data[cursor_position.row - 1].length;
-               return {
+               cursor_last = {
                   row: cursor_position.row - 1,
                   col: prev_col_len,
                };
@@ -160,9 +143,9 @@ class TextIDE {
             if (cursor_position.row === lines_total - 1 && cursor_position.col === last_line_len)
                return cursor_position;
             if (cursor_position.col === this.text_data[cursor_position.row].length)
-               return { row: cursor_position.row + 1, col: 0 };
+               cursor_last = { row: cursor_position.row + 1, col: 0 };
             if (cursor_position.col < this.text_data[cursor_position.row].length)
-               return {
+               cursor_last = {
                   row: cursor_position.row,
                   col: cursor_position.col + 1,
                };
@@ -174,19 +157,20 @@ class TextIDE {
                this.preffered_col = cursor_position.col;
             }
             if (this.text_data[cursor_position.row - 1].length >= this.preffered_col)
-               return {
+               cursor_last = {
                   row: cursor_position.row - 1,
                   col: this.preffered_col,
                };
             if (this.text_data[cursor_position.row - 1].length < this.preffered_col)
-               return {
+               cursor_last = {
                   row: cursor_position.row - 1,
                   col: this.text_data[cursor_position.row - 1].length,
                };
+            break;
 
          case 'ArrowDown':
             if (cursor_position.row === lines_total - 1)
-               return {
+               cursor_last = {
                   row: cursor_position.row,
                   col: this.text_data[lines_total - 1].length,
                };
@@ -194,18 +178,24 @@ class TextIDE {
                this.preffered_col = cursor_position.col;
             }
             if (this.text_data[cursor_position.row + 1].length >= this.preffered_col)
-               return {
+               cursor_last = {
                   row: cursor_position.row + 1,
                   col: this.preffered_col,
                };
             if (this.text_data[cursor_position.row + 1].length < this.preffered_col)
-               return {
+               cursor_last = {
                   row: cursor_position.row + 1,
                   col: this.text_data[cursor_position.row + 1].length,
                };
+            break;
       }
 
-      return cursor_position;
+      if (keys.down['shift']) {
+         this.select(this.selection?.start || cursor_position, cursor_last);
+      } else {
+         this.deselect();
+      }
+      return cursor_last;
    }
 
    handle_control_arrow(key: string, cursor_position: row_col): row_col {
@@ -309,29 +299,66 @@ class TextIDE {
       return { row: cursor_position.row, col: cursor_position.col + 1 };
    }
 
-   get_selected_text(text_data: string[], selection: { smaller: row_col; bigger: row_col }): string[] {
+   get_selected_text(text_data: string[], selection: { start: row_col; finish: row_col }): string[] {
+      const sorted_selection = this.sort_selection(selection.start, selection.finish);
+
       const whole_text = JSON.parse(JSON.stringify(text_data));
-      const selected_text = whole_text.slice(selection.smaller.row, selection.bigger.row + 1);
+      const selected_text = whole_text.slice(
+         sorted_selection.smaller.row,
+         sorted_selection.bigger.row + 1
+      );
 
       if (selected_text.length > 1) {
-         selected_text[0] = selected_text[0].slice(selection.smaller.col);
+         selected_text[0] = selected_text[0].slice(sorted_selection.smaller.col);
          selected_text[selected_text.length - 1] = selected_text[selected_text.length - 1].slice(
             0,
-            selection.bigger.col
+            sorted_selection.bigger.col
          );
       } else {
-         selected_text[0] = selected_text[0].slice(selection.smaller.col, selection.bigger.col);
+         selected_text[0] = selected_text[0].slice(
+            sorted_selection.smaller.col,
+            sorted_selection.bigger.col
+         );
       }
       return selected_text;
    }
 
-   select(pos0: row_col, pos1: row_col): void {
+   delete_selection(): row_col {
+      const selection = JSON.parse(
+         JSON.stringify(this.sort_selection(this.selection!.start, this.selection!.finish))
+      );
+
       this.deselect();
 
-      const pos = this.sort_positions(pos0, pos1);
+      const { smaller, bigger } = selection;
+      if (smaller.row === bigger.row) {
+         // Single line selection
+         const line = this.text_data[smaller.row];
+         this.text_data[smaller.row] = line.slice(0, smaller.col) + line.slice(bigger.col);
+         return selection.smaller;
+      }
+
+      // Multi-line selection
+      const firstLine = this.text_data[smaller.row].slice(0, smaller.col);
+      const lastLine = this.text_data[bigger.row].slice(bigger.col);
+
+      // Remove lines in between
+      this.text_data.splice(smaller.row, bigger.row - smaller.row + 1, firstLine + lastLine);
+      return selection.smaller;
+   }
+
+   select(start: row_col, finish: row_col): void {
+      this.deselect();
+
+      if (equals(start, finish)) {
+         this.selection = null;
+         return;
+      }
+
+      const pos = this.sort_selection(start, finish);
 
       const selected_rows = this.map_selected_rows(pos.smaller, pos.bigger);
-      this.selection = pos;
+      this.selection = { start, finish };
 
       for (const r in selected_rows) {
          const row_num = parseInt(r);
@@ -394,7 +421,7 @@ class TextIDE {
       text_el.style.left = `-${indent}px`;
    }
 
-   sort_positions(pos0: row_col, pos1: row_col): { smaller: row_col; bigger: row_col } {
+   sort_selection(pos0: row_col, pos1: row_col): { smaller: row_col; bigger: row_col } {
       let smaller = null;
       let bigger = null;
 
