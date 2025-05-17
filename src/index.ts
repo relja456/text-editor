@@ -24,6 +24,8 @@ const last_line = document.getElementById(`line--${text_ide.text_data.length - 1
 const lh = window.getComputedStyle(last_line).height;
 global.line_height = parseFloat(lh);
 
+global.char_width = 7.7;
+
 const cursor_el = document.getElementById('cursor')!;
 cursor_el.style.height = `${global.line_height}px`;
 

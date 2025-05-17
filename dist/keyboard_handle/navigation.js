@@ -113,12 +113,10 @@ function handle_control_arrow(text_ide, key, cursor_position) {
                     while (is_space_left && j >= 0) {
                         is_space_left = text_ide.text_data[cursor_position.row - 1][j - 1] === ' ';
                         j--;
-                        console.log('log1');
                     }
                     while (!is_space_left && j >= 0) {
                         is_space_left = text_ide.text_data[cursor_position.row - 1][j - 1] === ' ';
                         j--;
-                        console.log('log2');
                     }
                     cursor_last = {
                         row: cursor_position.row - 1,

@@ -22,8 +22,6 @@ class TextIDE {
         if (keys.arrow.include(key))
             return navigation.handle_arrow(this, key, cursor_position);
         this.preffered_col = null;
-        if (this.selection !== null)
-            cursor_position = this.delete_selection();
         if (key === 'Enter')
             return this.handle_enter(cursor_position);
         if (key === 'Backspace')
@@ -41,8 +39,22 @@ class TextIDE {
                 return this.handle_paste(cursor_position);
             case 'x':
                 return this.handle_cut(cursor_position);
+            case 'a':
+                return this.handle_select_all(cursor_position);
         }
         return { row: 1, col: 1 };
+    }
+    handle_select_all(cursor_position) {
+        this.deselect();
+        this.selection = {
+            start: { row: 0, col: 0 },
+            finish: {
+                row: this.text_data.length - 1,
+                col: this.text_data[this.text_data.length - 1].length,
+            },
+        };
+        this.select(this.selection.start, this.selection.finish);
+        return this.selection.finish;
     }
     handle_copy(cursor_position) {
         this.selection === null
@@ -96,6 +108,9 @@ class TextIDE {
         }
     }
     handle_enter(cursor_position) {
+        if (this.selection !== null) {
+            this.delete_selection();
+        }
         const before_cursor = this.text_data[cursor_position.row].slice(0, cursor_position.col);
         const after_cursor = this.text_data[cursor_position.row].slice(cursor_position.col);
         this.text_data.splice(cursor_position.row, 0, before_cursor);
@@ -105,6 +120,12 @@ class TextIDE {
     handle_backspace(cursor_position) {
         if (cursor_position.row === 0 && cursor_position.col === 0)
             return cursor_position;
+        console.log(this.selection);
+        if (this.selection !== null) {
+            const smaller = this.sort_selection(this.selection.start, this.selection.finish).smaller;
+            this.delete_selection();
+            return smaller;
+        }
         if (cursor_position.col === 0 && cursor_position.row > 0) {
             this.text_data.splice(cursor_position.row, 1);
             return {
@@ -122,6 +143,9 @@ class TextIDE {
         }
     }
     handle_tab(cursor_position) {
+        if (this.selection !== null) {
+            this.delete_selection();
+        }
         const current_row = this.text_data[cursor_position.row];
         const tab_width = global.tab_width;
         this.text_data[cursor_position.row] =
@@ -190,6 +214,7 @@ class TextIDE {
             this.apply_style_to_selected_row(row_num, row_info[0], row_info[1]);
             this.selected_rows.push(row_num);
         }
+        console.log('selected rows: ', this.selection);
     }
     deselect() {
         for (const [id, text] of this.text_data.entries()) {

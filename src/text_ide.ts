@@ -31,8 +31,6 @@ class TextIDE {
 
       this.preffered_col = null;
 
-      if (this.selection !== null) cursor_position = this.delete_selection();
-
       if (key === 'Enter') return this.handle_enter(cursor_position);
       if (key === 'Backspace') return this.handle_backspace(cursor_position);
       if (key === 'Tab') return this.handle_tab(cursor_position);
@@ -49,9 +47,24 @@ class TextIDE {
             return this.handle_paste(cursor_position);
          case 'x':
             return this.handle_cut(cursor_position);
+         case 'a':
+            return this.handle_select_all(cursor_position);
       }
 
       return { row: 1, col: 1 };
+   }
+
+   handle_select_all(cursor_position: row_col): row_col {
+      this.deselect();
+      this.selection = {
+         start: { row: 0, col: 0 },
+         finish: {
+            row: this.text_data.length - 1,
+            col: this.text_data[this.text_data.length - 1].length,
+         },
+      };
+      this.select(this.selection.start, this.selection.finish);
+      return this.selection.finish;
    }
 
    handle_copy(cursor_position: row_col) {
@@ -118,6 +131,10 @@ class TextIDE {
    }
 
    handle_enter(cursor_position: row_col): row_col {
+      if (this.selection !== null) {
+         this.delete_selection();
+      }
+
       const before_cursor = this.text_data[cursor_position.row].slice(0, cursor_position.col);
       const after_cursor = this.text_data[cursor_position.row].slice(cursor_position.col);
 
@@ -129,6 +146,14 @@ class TextIDE {
 
    handle_backspace(cursor_position: row_col): row_col {
       if (cursor_position.row === 0 && cursor_position.col === 0) return cursor_position;
+
+      console.log(this.selection);
+
+      if (this.selection !== null) {
+         const smaller = this.sort_selection(this.selection.start, this.selection.finish).smaller;
+         this.delete_selection();
+         return smaller;
+      }
 
       if (cursor_position.col === 0 && cursor_position.row > 0) {
          this.text_data.splice(cursor_position.row, 1);
@@ -150,6 +175,10 @@ class TextIDE {
    }
 
    handle_tab(cursor_position: row_col): row_col {
+      if (this.selection !== null) {
+         this.delete_selection();
+      }
+
       const current_row = this.text_data[cursor_position.row];
       const tab_width = global.tab_width;
       this.text_data[cursor_position.row] =
@@ -246,6 +275,8 @@ class TextIDE {
          this.apply_style_to_selected_row(row_num, row_info[0], row_info[1]);
          this.selected_rows.push(row_num);
       }
+
+      console.log('selected rows: ', this.selection);
    }
 
    deselect(): void {

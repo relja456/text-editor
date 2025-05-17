@@ -1,7 +1,8 @@
 TODO
+optimizacija
+dynamic char width
 select + backspace brise 1 karakter vise
 actions with select => delete
-cursor on move dont blink
 optimizacija rendera
 bojenje kljucnih reci
 themes
