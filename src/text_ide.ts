@@ -6,7 +6,7 @@ class TextIDE {
    ordered_list_element: HTMLElement;
 
    text_data: string[] = [''];
-   clipboard: string[] = [''];
+   clipboard: string[] = [];
 
    active_row: number = -1;
    selected_rows: number[] = [];
@@ -27,6 +27,8 @@ class TextIDE {
 
       this.preffered_col = null;
 
+      if (this.selection !== null) cursor_position = this.delete_selection();
+
       if (key === 'Enter') return this.handle_enter(cursor_position);
       if (key === 'Backspace') return this.handle_backspace(cursor_position);
       if (key === 'Tab') return this.handle_tab(cursor_position);
@@ -39,6 +41,10 @@ class TextIDE {
          case 'c':
             this.handle_copy(cursor_position);
             return cursor_position;
+         case 'v':
+            return this.handle_paste(cursor_position);
+         case 'x':
+            return this.handle_cut(cursor_position);
       }
 
       return { row: 1, col: 1 };
@@ -52,9 +58,82 @@ class TextIDE {
       console.log('copied text: ', this.clipboard);
    }
 
+   handle_cut(cursor_position: row_col): row_col {
+      this.handle_copy(cursor_position);
+
+      if (this.selection === null) {
+         this.text_data[cursor_position.row] = '';
+         return { row: cursor_position.row, col: 0 };
+      }
+
+      return this.delete_selection();
+   }
+
+   delete_selection(): row_col {
+      const selection = JSON.parse(JSON.stringify(this.selection));
+
+      this.deselect();
+
+      const { smaller, bigger } = selection;
+      if (smaller.row === bigger.row) {
+         // Single line selection
+         const line = this.text_data[smaller.row];
+         this.text_data[smaller.row] = line.slice(0, smaller.col) + line.slice(bigger.col);
+         return selection.smaller;
+      }
+
+      // Multi-line selection
+      const firstLine = this.text_data[smaller.row].slice(0, smaller.col);
+      const lastLine = this.text_data[bigger.row].slice(bigger.col);
+
+      // Remove lines in between
+      this.text_data.splice(smaller.row, bigger.row - smaller.row + 1, firstLine + lastLine);
+      return selection.smaller;
+   }
+
+   handle_paste(cursor_position: row_col): row_col {
+      if (this.clipboard.length === 0) return cursor_position;
+      else if (this.clipboard.length === 1) {
+         this.text_data[cursor_position.row] =
+            this.text_data[cursor_position.row].slice(0, cursor_position.col) +
+            this.clipboard[0] +
+            this.text_data[cursor_position.row].slice(cursor_position.col);
+         return {
+            row: cursor_position.row,
+            col: cursor_position.col + this.clipboard[0].length,
+         };
+      } else {
+         // Insert multiple lines from clipboard at the cursor position
+         const currentLine = this.text_data[cursor_position.row];
+         const before = currentLine.slice(0, cursor_position.col);
+         const after = currentLine.slice(cursor_position.col);
+
+         // First line: before + clipboard[0]
+         this.text_data[cursor_position.row] = before + this.clipboard[0];
+
+         // Middle lines: clipboard[1] ... clipboard[n-2]
+         for (let i = 1; i < this.clipboard.length - 1; i++) {
+            this.text_data.splice(cursor_position.row + i, 0, this.clipboard[i]);
+         }
+
+         // Last line: clipboard[n-1] + after
+         this.text_data.splice(
+            cursor_position.row + this.clipboard.length - 1,
+            0,
+            this.clipboard[this.clipboard.length - 1] + after
+         );
+
+         return {
+            row: cursor_position.row + this.clipboard.length - 1,
+            col: this.clipboard[this.clipboard.length - 1].length,
+         };
+      }
+   }
+
    handle_arrow(key: string, cursor_position: row_col): row_col {
       const lines_total = this.text_data.length;
       const last_line_len = this.text_data[lines_total - 1].length;
+
       switch (key) {
          case 'ArrowLeft':
             this.preffered_col = null;
