@@ -1,3 +1,11 @@
+function create_keys(codes) {
+    return {
+        codes,
+        include(key) {
+            return this.codes.some((k) => k === key);
+        },
+    };
+}
 const arrow_codes = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
 // prettier-ignore
 const ignore_codes = [
@@ -7,7 +15,7 @@ const ignore_codes = [
 ];
 const control_actions = ['c', 'v', 'x'];
 const hold_states = ['Control', 'Shift'];
-const down = { control: false, shift: false };
+const is_down = { control: false, shift: false };
 const prevent_defaults = ['Tab', 'Space', 'Control'];
 export const keys = {
     arrow: create_keys(arrow_codes),
@@ -15,13 +23,5 @@ export const keys = {
     hold_states: create_keys(hold_states),
     prevent_defaults: create_keys(prevent_defaults),
     control_actions: create_keys(control_actions),
-    down: down,
+    is_down: is_down,
 };
-function create_keys(codes) {
-    return {
-        codes,
-        include(key) {
-            return this.codes.some((k) => k === key);
-        },
-    };
-}

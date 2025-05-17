@@ -8,7 +8,7 @@ class Cursor {
         this.interval_id = null;
         this.blink = false;
     }
-    place(position, text_data) {
+    start_blinking_cycle() {
         if (this.interval_id === null) {
             this.interval_id = setInterval(() => {
                 this.blink
@@ -17,6 +17,13 @@ class Cursor {
                 this.blink = !this.blink;
             }, 400);
         }
+        else {
+            this.dom_element.className = 'active';
+            this.blink = true;
+        }
+    }
+    place(position, text_data) {
+        this.start_blinking_cycle();
         const real_position = this.calc_real_position(position, text_data);
         // promena pozicije
         if (real_position.row != this.row || real_position.col != this.col) {
@@ -66,6 +73,7 @@ class Cursor {
         return { row: this.row, col: this.col };
     }
     set_position(position) {
+        this.start_blinking_cycle();
         this.row = position.row;
         this.col = position.col;
         this.update_dom_position();

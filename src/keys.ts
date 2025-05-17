@@ -3,6 +3,15 @@ export interface KeyCollection {
    include(key: string): boolean;
 }
 
+function create_keys(codes: string[]): KeyCollection {
+   return {
+      codes,
+      include(key: string): boolean {
+         return this.codes.some((k) => k === key);
+      },
+   };
+}
+
 const arrow_codes = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
 
 // prettier-ignore
@@ -12,11 +21,11 @@ const ignore_codes = [
     'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'
 ];
 
-const control_actions = ['c', 'v', 'x']
+const control_actions = ['c', 'v', 'x'];
 
 const hold_states = ['Control', 'Shift'];
 
-const down: { [key: string]: boolean } = { control: false, shift: false };
+const is_down: { [key: string]: boolean } = { control: false, shift: false };
 
 const prevent_defaults = ['Tab', 'Space', 'Control'];
 
@@ -26,14 +35,5 @@ export const keys = {
    hold_states: create_keys(hold_states),
    prevent_defaults: create_keys(prevent_defaults),
    control_actions: create_keys(control_actions),
-   down: down,
+   is_down: is_down,
 };
-
-function create_keys(codes: string[]): KeyCollection {
-   return {
-      codes,
-      include(key: string): boolean {
-         return this.codes.some((k) => k === key);
-      },
-   };
-}

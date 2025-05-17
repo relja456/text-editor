@@ -30,7 +30,7 @@ function handle_key_down(event) {
     }
     if (keys.hold_states.include(input_key)) {
         const key = input_key.toLowerCase();
-        keys.down[key] = true;
+        keys.is_down[key] = true;
     }
     const position = text_ide.handle_keypress(input_key, cursor.get_position());
     text_ide.render();
@@ -41,7 +41,7 @@ function handle_key_up(event) {
     const input_key = event.key;
     if (keys.hold_states.include(input_key)) {
         const key = input_key.toLowerCase();
-        keys.down[key] = false;
+        keys.is_down[key] = false;
     }
 }
 function handle_mouse_down(event) {

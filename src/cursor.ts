@@ -24,7 +24,7 @@ class Cursor {
       this.blink = false;
    }
 
-   place(position: { row: number; col: number }, text_data: string[]): { row: number; col: number } {
+   start_blinking_cycle(): void {
       if (this.interval_id === null) {
          this.interval_id = setInterval(() => {
             this.blink
@@ -32,13 +32,20 @@ class Cursor {
                : (this.dom_element.className = 'inactive');
             this.blink = !this.blink;
          }, 400);
+      } else {
+         this.dom_element.className = 'active';
+         this.blink = true;
       }
+   }
+
+   place(position: { row: number; col: number }, text_data: string[]): { row: number; col: number } {
+      this.start_blinking_cycle();
 
       const real_position = this.calc_real_position(position, text_data);
 
       // promena pozicije
       if (real_position.row != this.row || real_position.col != this.col) {
-         this.dom_element.className = 'active'
+         this.dom_element.className = 'active';
          this.row = real_position.row;
          this.col = real_position.col;
          this.update_dom_position();
@@ -98,6 +105,7 @@ class Cursor {
    }
 
    set_position(position: row_col) {
+      this.start_blinking_cycle();
       this.row = position.row;
       this.col = position.col;
       this.update_dom_position();

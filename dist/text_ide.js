@@ -1,6 +1,7 @@
 import { keys } from './keys.js';
 import global from './globals.js';
 import { equals } from './types.js';
+import * as navigation from './keyboard_handle/navigation.js';
 class TextIDE {
     constructor(ordered_list_element) {
         this.text_data = [''];
@@ -14,12 +15,12 @@ class TextIDE {
     handle_keypress(key, cursor_position) {
         if (keys.ignore.include(key))
             return cursor_position;
-        if (keys.down['control'] && keys.control_actions.include(key))
+        if (keys.is_down['control'] && keys.control_actions.include(key))
             return this.handle_control_action(key, cursor_position);
-        if (keys.down['control'] && keys.arrow.include(key))
-            return this.handle_control_arrow(key, cursor_position);
+        if (keys.is_down['control'] && keys.arrow.include(key))
+            return navigation.handle_control_arrow(this, key, cursor_position);
         if (keys.arrow.include(key))
-            return this.handle_arrow(key, cursor_position);
+            return navigation.handle_arrow(this, key, cursor_position);
         this.preffered_col = null;
         if (this.selection !== null)
             cursor_position = this.delete_selection();
@@ -92,129 +93,6 @@ class TextIDE {
                 col: this.clipboard[this.clipboard.length - 1].length,
             };
         }
-    }
-    handle_arrow(key, cursor_position) {
-        var _a;
-        const lines_total = this.text_data.length;
-        const last_line_len = this.text_data[lines_total - 1].length;
-        let cursor_last = cursor_position;
-        switch (key) {
-            case 'ArrowLeft':
-                this.preffered_col = null;
-                if (cursor_position.row === 0 && cursor_position.col === 0)
-                    return cursor_position;
-                if (cursor_position.col > 0)
-                    cursor_last = {
-                        row: cursor_position.row,
-                        col: cursor_position.col - 1,
-                    };
-                if (cursor_position.col === 0) {
-                    const prev_col_len = this.text_data[cursor_position.row - 1].length;
-                    cursor_last = {
-                        row: cursor_position.row - 1,
-                        col: prev_col_len,
-                    };
-                }
-                break;
-            case 'ArrowRight':
-                this.preffered_col = null;
-                if (cursor_position.row === lines_total - 1 && cursor_position.col === last_line_len)
-                    return cursor_position;
-                if (cursor_position.col === this.text_data[cursor_position.row].length)
-                    cursor_last = { row: cursor_position.row + 1, col: 0 };
-                if (cursor_position.col < this.text_data[cursor_position.row].length)
-                    cursor_last = {
-                        row: cursor_position.row,
-                        col: cursor_position.col + 1,
-                    };
-                break;
-            case 'ArrowUp':
-                if (cursor_position.row === 0)
-                    return cursor_position;
-                if (this.preffered_col === null) {
-                    this.preffered_col = cursor_position.col;
-                }
-                if (this.text_data[cursor_position.row - 1].length >= this.preffered_col)
-                    cursor_last = {
-                        row: cursor_position.row - 1,
-                        col: this.preffered_col,
-                    };
-                if (this.text_data[cursor_position.row - 1].length < this.preffered_col)
-                    cursor_last = {
-                        row: cursor_position.row - 1,
-                        col: this.text_data[cursor_position.row - 1].length,
-                    };
-                break;
-            case 'ArrowDown':
-                if (cursor_position.row === lines_total - 1)
-                    cursor_last = {
-                        row: cursor_position.row,
-                        col: this.text_data[lines_total - 1].length,
-                    };
-                if (this.preffered_col === null) {
-                    this.preffered_col = cursor_position.col;
-                }
-                if (this.text_data[cursor_position.row + 1].length >= this.preffered_col)
-                    cursor_last = {
-                        row: cursor_position.row + 1,
-                        col: this.preffered_col,
-                    };
-                if (this.text_data[cursor_position.row + 1].length < this.preffered_col)
-                    cursor_last = {
-                        row: cursor_position.row + 1,
-                        col: this.text_data[cursor_position.row + 1].length,
-                    };
-                break;
-        }
-        if (keys.down['shift']) {
-            this.select(((_a = this.selection) === null || _a === void 0 ? void 0 : _a.start) || cursor_position, cursor_last);
-        }
-        else {
-            this.deselect();
-        }
-        return cursor_last;
-    }
-    handle_control_arrow(key, cursor_position) {
-        switch (key) {
-            case 'ArrowLeft':
-                let is_space_left = this.text_data[cursor_position.row][cursor_position.col - 1] === ' ';
-                let i = cursor_position.col - 1;
-                while (is_space_left && i >= 0) {
-                    is_space_left = this.text_data[cursor_position.row][i - 1] === ' ';
-                    i--;
-                }
-                while (!is_space_left && i >= 0) {
-                    is_space_left = this.text_data[cursor_position.row][i - 1] === ' ';
-                    i--;
-                }
-                return {
-                    row: cursor_position.row,
-                    col: i + 1,
-                };
-            case 'ArrowRight':
-                let is_space_right = this.text_data[cursor_position.row][cursor_position.col] === ' ';
-                let j = cursor_position.col;
-                while (is_space_right && j <= this.text_data[cursor_position.row].length) {
-                    is_space_right = this.text_data[cursor_position.row][j] === ' ';
-                    j++;
-                }
-                while (!is_space_right && j <= this.text_data[cursor_position.row].length) {
-                    is_space_right = this.text_data[cursor_position.row][j] === ' ';
-                    j++;
-                }
-                return {
-                    row: cursor_position.row,
-                    col: j - 1,
-                };
-            case 'ArrowUp':
-                break;
-            case 'ArrowDown':
-                break;
-        }
-        return {
-            row: cursor_position.row,
-            col: 1,
-        };
     }
     handle_enter(cursor_position) {
         const before_cursor = this.text_data[cursor_position.row].slice(0, cursor_position.col);
