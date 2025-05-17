@@ -1,3 +1,18 @@
+/* first theme */
+/* :root {
+    --primary-bg: #183b4e;
+    --primary-fg: #f5eedc;
+    --accent: #27548a;
+    --select: #3d6981;
+} */
+
+:root {
+    --primary-bg: #2a2b2e;
+    --primary-fg: #A4C2A8;
+    --accent: #ACEB98;
+    --select-pointer: #A4C2A8;
+}
+
 *,
 p,
 h1,
@@ -13,8 +28,8 @@ h6 {
 }
 
 body {
-    background-color: #183b4e;
-    color: #f5eedc;
+    background-color: var(--primary-bg);
+    color: var(--primary-fg);
 }
 
 #root-page {
@@ -33,7 +48,8 @@ body {
     height: 80vh;
 
     overflow-y: scroll;
-    scrollbar-color: #27548a #183b4e;
+    scrollbar-color: var(--accent) var(--primary-bg);
+    scrollbar-width: thin;
 
     box-sizing: border-box;
 }
@@ -43,7 +59,6 @@ body {
 }
 
 #cursor {
-    background-color: transparent;
     position: relative;
     height: 18px;
     width: 2px;
@@ -51,6 +66,16 @@ body {
     left: 100px;
     z-index: 999;
 }
+
+.active {
+    background-color: var(--select-pointer);
+}
+
+.inactive {
+    background-color: transparent;
+}
+
+
 
 #ordered-list {
     min-width: calc(100% - 50px);
@@ -63,8 +88,12 @@ body {
     box-sizing: border-box;
 }
 
+.line-selected {
+    box-shadow: inset 0 1px 0 0 var(--accent), inset 0 -1px 0 0 var(--accent);
+}
+
 .select {
-    background-color: #3d6981;
+    background-color: var(--select-pointer);
     height: 100%;
     width: 0;
     position: relative;

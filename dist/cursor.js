@@ -12,15 +12,15 @@ class Cursor {
         if (this.interval_id === null) {
             this.interval_id = setInterval(() => {
                 this.blink
-                    ? (this.dom_element.style.backgroundColor = 'grey')
-                    : (this.dom_element.style.backgroundColor = 'transparent');
+                    ? (this.dom_element.className = 'active')
+                    : (this.dom_element.className = 'inactive');
                 this.blink = !this.blink;
             }, 400);
         }
         const real_position = this.calc_real_position(position, text_data);
         // promena pozicije
         if (real_position.row != this.row || real_position.col != this.col) {
-            this.dom_element.style.backgroundColor = 'grey';
+            this.dom_element.className = 'active';
             this.row = real_position.row;
             this.col = real_position.col;
             this.update_dom_position();
@@ -50,7 +50,7 @@ class Cursor {
     }
     remove() {
         if (this.interval_id != null) {
-            this.dom_element.style.backgroundColor = 'transparent';
+            this.dom_element.className = 'inactive';
             this.row = -1;
             this.col = -1;
             clearInterval(this.interval_id);

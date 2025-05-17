@@ -32,10 +32,16 @@ class TextIDE {
                 if (cursor_position.row === 0 && cursor_position.col === 0)
                     return cursor_position;
                 if (cursor_position.col > 0)
-                    return { row: cursor_position.row, col: cursor_position.col - 1 };
+                    return {
+                        row: cursor_position.row,
+                        col: cursor_position.col - 1,
+                    };
                 if (cursor_position.col === 0) {
                     const prev_col_len = this.text_data[cursor_position.row - 1].length;
-                    return { row: cursor_position.row - 1, col: prev_col_len };
+                    return {
+                        row: cursor_position.row - 1,
+                        col: prev_col_len,
+                    };
                 }
                 break;
             case 'ArrowRight':
@@ -45,7 +51,10 @@ class TextIDE {
                 if (cursor_position.col === this.text_data[cursor_position.row].length)
                     return { row: cursor_position.row + 1, col: 0 };
                 if (cursor_position.col < this.text_data[cursor_position.row].length)
-                    return { row: cursor_position.row, col: cursor_position.col + 1 };
+                    return {
+                        row: cursor_position.row,
+                        col: cursor_position.col + 1,
+                    };
                 break;
             case 'ArrowUp':
                 if (cursor_position.row === 0)
@@ -54,19 +63,34 @@ class TextIDE {
                     this.preffered_col = cursor_position.col;
                 }
                 if (this.text_data[cursor_position.row - 1].length >= this.preffered_col)
-                    return { row: cursor_position.row - 1, col: this.preffered_col };
+                    return {
+                        row: cursor_position.row - 1,
+                        col: this.preffered_col,
+                    };
                 if (this.text_data[cursor_position.row - 1].length < this.preffered_col)
-                    return { row: cursor_position.row - 1, col: this.text_data[cursor_position.row - 1].length };
+                    return {
+                        row: cursor_position.row - 1,
+                        col: this.text_data[cursor_position.row - 1].length,
+                    };
             case 'ArrowDown':
                 if (cursor_position.row === lines_total - 1)
-                    return { row: cursor_position.row, col: this.text_data[lines_total - 1].length };
+                    return {
+                        row: cursor_position.row,
+                        col: this.text_data[lines_total - 1].length,
+                    };
                 if (this.preffered_col === null) {
                     this.preffered_col = cursor_position.col;
                 }
                 if (this.text_data[cursor_position.row + 1].length >= this.preffered_col)
-                    return { row: cursor_position.row + 1, col: this.preffered_col };
+                    return {
+                        row: cursor_position.row + 1,
+                        col: this.preffered_col,
+                    };
                 if (this.text_data[cursor_position.row + 1].length < this.preffered_col)
-                    return { row: cursor_position.row + 1, col: this.text_data[cursor_position.row + 1].length };
+                    return {
+                        row: cursor_position.row + 1,
+                        col: this.text_data[cursor_position.row + 1].length,
+                    };
         }
         return cursor_position;
     }
@@ -78,21 +102,31 @@ class TextIDE {
         return { row: cursor_position.row + 1, col: 0 };
     }
     handle_backspace(cursor_position) {
+        if (cursor_position.row === 0 && cursor_position.col === 0)
+            return cursor_position;
         if (cursor_position.col === 0 && cursor_position.row > 0) {
             this.text_data.splice(cursor_position.row, 1);
-            return { row: cursor_position.row - 1, col: this.text_data[cursor_position.row - 1].length };
+            return {
+                row: cursor_position.row - 1,
+                col: this.text_data[cursor_position.row - 1].length,
+            };
         }
         else {
             console.log('col ' + cursor_position.col);
             this.text_data[cursor_position.row] = this.remove_nth_char(this.text_data[cursor_position.row], cursor_position.col - 1);
-            return { row: cursor_position.row, col: cursor_position.col - 1 };
+            return {
+                row: cursor_position.row,
+                col: cursor_position.col - 1,
+            };
         }
     }
     handle_tab(cursor_position) {
         const current_row = this.text_data[cursor_position.row];
         const tab_width = global.tab_width;
         this.text_data[cursor_position.row] =
-            current_row.slice(0, cursor_position.col) + ' '.repeat(tab_width) + current_row.slice(cursor_position.col);
+            current_row.slice(0, cursor_position.col) +
+                ' '.repeat(tab_width) +
+                current_row.slice(cursor_position.col);
         return { row: cursor_position.row, col: cursor_position.col + 4 };
     }
     handle_input(key, cursor_position) {
@@ -136,7 +170,8 @@ class TextIDE {
             return map;
         }
         if (bigger.row - smaller.row >= 1) {
-            (map[smaller.row] = [smaller.col, this.text_data[smaller.row].length]), (map[bigger.row] = [0, bigger.col]);
+            (map[smaller.row] = [smaller.col, this.text_data[smaller.row].length]),
+                (map[bigger.row] = [0, bigger.col]);
         }
         if (bigger.row - smaller.row >= 2) {
             for (let r = smaller.row + 1; r < bigger.row; r++) {
@@ -220,13 +255,13 @@ class TextIDE {
             return;
         this.reset_active_row();
         const new_selected_row_el = document.getElementById(`line--${row}`);
-        new_selected_row_el.style.boxShadow = 'inset 0 1px 0 0 royalblue, inset 0 -1px 0 0 royalblue';
+        new_selected_row_el.className = 'line-selected';
         this.active_row = row;
     }
     reset_active_row() {
         const selected_row = document.getElementById(`line--${this.active_row}`);
         if (selected_row)
-            selected_row.style.boxShadow = 'none';
+            selected_row.className = 'line';
     }
     remove_nth_char(s, n) {
         // zero indexing

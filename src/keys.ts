@@ -1,6 +1,6 @@
 export interface KeyCollection {
-    codes: string[];
-    include(key: string): boolean;
+   codes: string[];
+   include(key: string): boolean;
 }
 
 const arrow_codes = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
@@ -18,18 +18,18 @@ const down: { [key: string]: boolean } = { control: false, shift: false };
 const prevent_defaults = ['Tab', 'Space', 'Control'];
 
 function create_keys(codes: string[]): KeyCollection {
-    return {
-        codes,
-        include(key: string): boolean {
-            return this.codes.some((k) => k === key);
-        },
-    };
+   return {
+      codes,
+      include(key: string): boolean {
+         return this.codes.some((k) => k === key);
+      },
+   };
 }
 
 export const keys = {
-    arrow: create_keys(arrow_codes),
-    ignore: create_keys(ignore_codes),
-    hold_states: create_keys(hold_states),
-    prevent_defaults: create_keys(prevent_defaults),
-    down: down,
+   arrow: create_keys(arrow_codes),
+   ignore: create_keys(ignore_codes),
+   hold_states: create_keys(hold_states),
+   prevent_defaults: create_keys(prevent_defaults),
+   down: down,
 };

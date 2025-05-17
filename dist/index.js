@@ -2,15 +2,6 @@ import Cursor from './cursor.js';
 import TextIDE from './text_ide.js';
 import global from './globals.js';
 import { keys } from './keys.js';
-// TODO
-// actions with select => copy, cut, delete, type, paste
-// ctrl pomeranje, shift selectovanje
-// optimizacija rendera
-// bojenje kljucnih reci
-// themes
-// tab + enter
-// BUGS
-// cursor select 1 tile offset when move select and return it back to start position
 global.char_width = 8.41;
 let is_ide_focused = false;
 const mouse = { down: false, start_position: { row: 0, col: 0 }, position: { x: 0, y: 0 } };
@@ -96,7 +87,10 @@ function handle_mouse_up(event) {
 function get_cursor_position(event) {
     const ol_top = document.getElementById('ordered-list').getBoundingClientRect().top;
     const ol_left = document.getElementById('ordered-list').getBoundingClientRect().left;
-    const mouse_rel_pos = { x: event.clientX - global.ordered_list_padding_left - ol_left, y: event.clientY - ol_top };
+    const mouse_rel_pos = {
+        x: event.clientX - global.ordered_list_padding_left - ol_left,
+        y: event.clientY - ol_top,
+    };
     return cursor.calc_real_position(xy_to_rowcol(mouse_rel_pos), text_ide.text_data);
 }
 function handle_resize() {
