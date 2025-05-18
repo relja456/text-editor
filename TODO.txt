@@ -1,8 +1,0 @@
-TODO
-optimizacija
-actions with select => delete
-optimizacija rendera
-bojenje kljucnih reci
-themes
-tab + enter -> pamcenje indenta
-na klik scrolla ne brisati selekciju i ne postavljati aktivan red
