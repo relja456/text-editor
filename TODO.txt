@@ -1,9 +1,8 @@
 TODO
 optimizacija
-dynamic char width
-select + backspace brise 1 karakter vise
 actions with select => delete
 optimizacija rendera
 bojenje kljucnih reci
 themes
 tab + enter -> pamcenje indenta
+na klik scrolla ne brisati selekciju i ne postavljati aktivan red

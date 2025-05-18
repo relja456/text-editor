@@ -1,6 +1,7 @@
 import Cursor from './cursor.js';
 import TextIDE from './text_ide.js';
 import global from './globals.js';
+import Theme from './ui/theme_ui.js';
 import { keys } from './keys.js';
 let is_ide_focused = false;
 const mouse = { down: false, start_position: { row: 0, col: 0 }, position: { x: 0, y: 0 } };
@@ -14,6 +15,7 @@ const text_area_element = document.getElementById('text-area');
 const ordered_list_element = document.getElementById('ordered-list');
 const text_ide = new TextIDE(ordered_list_element);
 text_ide.set_active_row(0);
+const theme = new Theme();
 const last_line = document.getElementById(`line--${text_ide.text_data.length - 1}`);
 const lh = window.getComputedStyle(last_line).height;
 global.line_height = parseFloat(lh);
