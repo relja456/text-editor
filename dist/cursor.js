@@ -1,8 +1,7 @@
 import global from './globals.js';
 class Cursor {
-    constructor(dom_element, x_offset) {
+    constructor(dom_element) {
         this.dom_element = dom_element;
-        this.x_offset = x_offset;
         this.row = -1;
         this.col = -1;
         this.interval_id = null;
@@ -65,7 +64,7 @@ class Cursor {
         }
     }
     update_dom_position() {
-        this.dom_element.style.left = `${this.col * global.char_width + this.x_offset}px`;
+        this.dom_element.style.left = `${this.col * global.char_width + global.ordered_list_padding_left}px`;
         this.dom_element.style.top = `${this.row * global.line_height + global.line_height}px`;
         this.dom_element.style.height = `${global.line_height}px`;
     }

@@ -88,9 +88,9 @@ body {
 }
 
 #ordered-list {
-    min-width: calc(100% - 50px);
+    min-width: calc(100% - 30px);
     width: fit-content;
-    padding-left: 50px;
+    padding-left: 30px;
 }
 
 .line {

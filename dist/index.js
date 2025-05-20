@@ -15,6 +15,7 @@ const text_area_element = document.getElementById('text-area');
 const ordered_list_element = document.getElementById('ordered-list');
 const text_ide = new TextIDE(ordered_list_element);
 text_ide.set_active_row(0);
+text_ide.render();
 const theme = new Theme();
 const last_line = document.getElementById(`line--${text_ide.text_data.length - 1}`);
 const lh = window.getComputedStyle(last_line).height;
@@ -22,7 +23,7 @@ global.line_height = parseFloat(lh);
 global.char_width = 7.7;
 const cursor_el = document.getElementById('cursor');
 cursor_el.style.height = `${global.line_height}px`;
-const cursor = new Cursor(cursor_el, global.ordered_list_padding_left);
+const cursor = new Cursor(cursor_el);
 function handle_key_down(event) {
     const input_key = event.key;
     if (!is_ide_focused)
@@ -99,7 +100,7 @@ function handle_resize() {
     const last_line = document.getElementById(`line--${text_ide.text_data.length - 1}`);
     const lh = window.getComputedStyle(last_line).height;
     global.line_height = parseFloat(lh);
-    text_ide.render();
+    // text_ide.render();
     cursor.update_dom_position();
 }
 function is_inside_element(x, y, node) {

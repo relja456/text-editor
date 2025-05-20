@@ -1,10 +1,8 @@
 import global from './globals.js';
-import row_col from './types.js';
+import { row_col } from './types.js';
 
 class Cursor {
    dom_element: HTMLElement;
-
-   x_offset: number;
 
    row: number;
    col: number;
@@ -12,10 +10,8 @@ class Cursor {
    interval_id: number | null;
    blink: boolean;
 
-   constructor(dom_element: HTMLElement, x_offset: number) {
+   constructor(dom_element: HTMLElement) {
       this.dom_element = dom_element;
-
-      this.x_offset = x_offset;
 
       this.row = -1;
       this.col = -1;
@@ -95,7 +91,7 @@ class Cursor {
    }
 
    update_dom_position(): void {
-      this.dom_element.style.left = `${this.col * global.char_width + this.x_offset}px`;
+      this.dom_element.style.left = `${this.col * global.char_width + global.ordered_list_padding_left}px`;
       this.dom_element.style.top = `${this.row * global.line_height + global.line_height}px`;
       this.dom_element.style.height = `${global.line_height}px`;
    }

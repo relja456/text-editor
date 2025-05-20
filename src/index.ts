@@ -20,6 +20,7 @@ const ordered_list_element: HTMLElement = document.getElementById('ordered-list'
 
 const text_ide = new TextIDE(ordered_list_element);
 text_ide.set_active_row(0);
+text_ide.render();
 
 const theme = new Theme();
 
@@ -32,7 +33,7 @@ global.char_width = 7.7;
 const cursor_el = document.getElementById('cursor')!;
 cursor_el.style.height = `${global.line_height}px`;
 
-const cursor = new Cursor(cursor_el, global.ordered_list_padding_left);
+const cursor = new Cursor(cursor_el);
 
 function handle_key_down(event: KeyboardEvent): void {
    const input_key = event.key;
@@ -131,7 +132,7 @@ function handle_resize() {
    const lh = window.getComputedStyle(last_line).height;
    global.line_height = parseFloat(lh);
 
-   text_ide.render();
+   // text_ide.render();
    cursor.update_dom_position();
 }
 
