@@ -1,5 +1,5 @@
 import global from './globals.js';
-import { row_col } from './types.js';
+import row_col from './types.js';
 
 class Cursor {
    dom_element: HTMLElement;
