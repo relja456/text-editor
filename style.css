@@ -142,7 +142,6 @@ body {
     align-items: center;
     width: 15vh;
     height: 10vh;
-    /* background-color: var(--primary-fg); */
     border-radius: 10px;
 }
 
@@ -151,16 +150,20 @@ body {
     font-weight: 600;
     text-align: center;
     width: 80%;
-    height: 40px;
+    height: 60px;
     border-radius: 10px;
-    border: 1px solid darkslategray;
     background-color: transparent;
+    border: none;
+    font-size: 15px;
+    box-shadow: 0 0 8px 0  black;
 }
 
-.color-container > h6 {
-    font-size: 10px;
+.color-input:focus {
+    outline: none;
+}
+
+.color-wrapper > h6 {
+    font-size: 14px;
     text-align: center;
-    color: darkslategray;
-    /* color: var(--primary-bg); */
     margin-top: 5px;
 }
