@@ -14,7 +14,7 @@ class IDE_logic {
    preffered_col: number | null = null;
 
    handle_keypress(key: string, cursor_position: row_col): row_col {
-      _env_.ordered_list_padding_left = 30 + Math.floor(Math.log10(this.text_data.length)) * 10;
+      _env_.ol_pl = 30 + Math.floor(Math.log10(this.text_data.length)) * 10;
 
       if (keys.ignore.include(key)) return cursor_position;
 

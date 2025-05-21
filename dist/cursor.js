@@ -40,13 +40,19 @@ class Cursor {
             return { row: 0, col: 0 };
         }
         if (position.row >= text_data.length) {
-            return { row: text_data.length - 1, col: text_data[text_data.length - 1].length };
+            return {
+                row: text_data.length - 1,
+                col: text_data[text_data.length - 1].length,
+            };
         }
         else {
             row = position.row;
         }
         if (position.col > text_data[row].length) {
-            return { row, col: text_data[row].length };
+            return {
+                row,
+                col: text_data[row].length,
+            };
         }
         else if (position.col < 0) {
             return { row, col: 0 };
@@ -64,7 +70,7 @@ class Cursor {
         }
     }
     update_dom_position() {
-        this.dom_element.style.left = `${this.col * _env_.char_width + _env_.ordered_list_padding_left}px`;
+        this.dom_element.style.left = `${this.col * _env_.char_width + 35}px`;
         this.dom_element.style.top = `${this.row * _env_.line_height + _env_.line_height}px`;
         this.dom_element.style.height = `${_env_.line_height}px`;
     }

@@ -3,6 +3,8 @@ import IDE_logic from '../ide_logic.js';
 class IDE_UI {
     constructor() {
         this.old_text = [''];
+        this.text_area_el = document.getElementById('text-area');
+        this.ordered_list_el = document.getElementById('ordered-list');
     }
     static getInstance() {
         if (!IDE_UI.instance) {
@@ -10,40 +12,39 @@ class IDE_UI {
         }
         return IDE_UI.instance;
     }
-    render_lines_and_text(text_data, ordered_list_element) {
+    render_lines_and_text(text_data) {
         const diff = this.text_diff(this.old_text, text_data);
-        if (diff === null)
-            return;
-        console.log('lines: ' + text_data.length);
-        ordered_list_element.style.paddingLeft = `${_env_.ordered_list_padding_left}px`;
-        ordered_list_element.style.minWidth = `calc(100% - ${_env_.ordered_list_padding_left}px)`;
+        console.log('total lines in file: ' + text_data.length);
+        // this.ordered_list_el.style.paddingLeft = `${_env_.ordered_list_padding_left}px`;
+        // this.ordered_list_el.style.minWidth = `calc(100% - ${_env_.ordered_list_padding_left}px)`;
         const fragment = document.createDocumentFragment();
-        const ol = document.getElementById('ordered-list');
-        ol.style.paddingTop = `${_env_.line_height * (text_data.length - 1)}px`;
-        // for (let id = diff[0]; id <= diff[1]; id++) {
-        //    console.log('render iteration');
-        //    let line_dom = document.getElementById(`line--${id}`);
-        //    let select_dom = line_dom?.children[0] as HTMLElement;
-        //    let text_dom = line_dom?.children[1] as HTMLElement;
-        //    if (!line_dom || !select_dom || !text_dom) {
-        //       line_dom = document.createElement('li');
-        //       line_dom.id = `line--${id}`;
-        //       line_dom.className = 'line';
-        //       select_dom = document.createElement('div');
-        //       select_dom.id = `select--${id}`;
-        //       select_dom.className = 'select';
-        //       text_dom = document.createElement('span');
-        //       text_dom.id = `text--${id}`;
-        //       text_dom.className = 'text';
-        //       line_dom.appendChild(select_dom);
-        //       line_dom.appendChild(text_dom);
-        //       fragment.appendChild(line_dom);
-        //    }
-        //    // _env_.line_height
-        //    document.documentElement.style.setProperty(`--line-height`, `${_env_.line_height}px`);
-        //    text_dom.innerText = text_data[id];
-        // }
-        ordered_list_element.append(fragment);
+        const ol_h = _env_.line_height * (text_data.length + 1);
+        const ta_h = this.text_area_el.getBoundingClientRect().height;
+        const scroll_top = this.text_area_el.scrollTop;
+        console.log(ol_h, ta_h, scroll_top);
+        const [first, last] = this.get_visible_rows(ta_h, scroll_top, _env_.line_height);
+        console.log('visible:', first, last);
+        this.ordered_list_el.innerHTML = '';
+        if (ol_h > ta_h) {
+            console.log(';overflow');
+            this.ordered_list_el.style.paddingTop = `${_env_.line_height * first}px`;
+            this.ordered_list_el.style.height = `${_env_.line_height * (last - first)}px`;
+            let calc_pb = _env_.line_height * (text_data.length - last);
+            calc_pb >= 0 ? null : (calc_pb = 0);
+            console.log('calc_pb');
+            console.log(calc_pb);
+            this.ordered_list_el.style.paddingBottom = `${calc_pb}px`;
+            console.log(first, last);
+            for (let row = first; row <= last; row++) {
+                const el = this.add_line_dom(row, text_data[row]);
+                this.ordered_list_el.appendChild(el);
+            }
+        }
+        else {
+            for (let row = 0; row < text_data.length; row++) {
+                this.ordered_list_el.appendChild(this.add_line_dom(row, text_data[row]));
+            }
+        }
         let i = text_data.length;
         let line = document.getElementById(`line--${i}`);
         while (line !== null) {
@@ -53,6 +54,34 @@ class IDE_UI {
         }
         this.old_text = JSON.parse(JSON.stringify(text_data));
     }
+    add_line_dom(row, text) {
+        let line_dom = document.getElementById(`line--${row}`);
+        let marker_dom = line_dom === null || line_dom === void 0 ? void 0 : line_dom.children[0];
+        let select_dom = line_dom === null || line_dom === void 0 ? void 0 : line_dom.children[1];
+        let text_dom = line_dom === null || line_dom === void 0 ? void 0 : line_dom.children[2];
+        if (!line_dom || !marker_dom || !select_dom || !text_dom) {
+            line_dom = document.createElement('li');
+            line_dom.id = `line--${row}`;
+            line_dom.className = 'line';
+            marker_dom = document.createElement('span');
+            marker_dom.id = `marker--${row}`;
+            marker_dom.className = 'marker';
+            marker_dom.innerText = `${row + 1}. `;
+            select_dom = document.createElement('div');
+            select_dom.id = `select--${row}`;
+            select_dom.className = 'select';
+            text_dom = document.createElement('span');
+            text_dom.id = `text--${row}`;
+            text_dom.className = 'text';
+            line_dom.appendChild(marker_dom);
+            line_dom.appendChild(select_dom);
+            line_dom.appendChild(text_dom);
+        }
+        document.documentElement.style.setProperty(`--line-height`, `${_env_.line_height}px`);
+        text_dom.innerText = text;
+        return line_dom;
+    }
+    // }
     text_diff(old_text, new_text) {
         let start = 0;
         let endOld = old_text.length - 1;
@@ -72,6 +101,11 @@ class IDE_UI {
         }
         // Return the range of difference
         return [start, Math.max(endOld, endNew) + 1];
+    }
+    get_visible_rows(outside_h, scroll_top, line_height) {
+        const rows_in_view = Math.floor(outside_h / line_height);
+        const scrolled_rows = Math.floor(scroll_top / line_height);
+        return [scrolled_rows, scrolled_rows + rows_in_view];
     }
     render_selected_text(text_data, selection) {
         if (selection === null)

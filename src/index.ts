@@ -17,12 +17,11 @@ document.addEventListener('mousemove', handle_mouse_move);
 document.addEventListener('mouseup', handle_mouse_up);
 
 const text_area_element: HTMLElement = document.getElementById('text-area')!;
-const ordered_list_element: HTMLElement = document.getElementById('ordered-list')!;
 
 const text_ide = new IDE_logic();
 
 text_ide.set_active_row(0);
-IDE_UI.getInstance().render_lines_and_text(text_ide.text_data, ordered_list_element);
+IDE_UI.getInstance().render_lines_and_text(text_ide.text_data);
 
 const theme = new Theme();
 
@@ -52,9 +51,7 @@ function handle_key_down(event: KeyboardEvent): void {
 
    const position = text_ide.handle_keypress(input_key, cursor.get_position());
 
-   requestAnimationFrame(() =>
-      IDE_UI.getInstance().render_lines_and_text(text_ide.text_data, ordered_list_element)
-   );
+   requestAnimationFrame(() => IDE_UI.getInstance().render_lines_and_text(text_ide.text_data));
 
    text_ide.set_active_row(position.row);
    cursor.set_position(position);
@@ -78,7 +75,7 @@ function handle_mouse_down(event: MouseEvent): void {
       return;
    }
 
-   const cursor_position = cursor.place(get_cursor_position(event), text_ide.text_data);
+   const cursor_position = cursor.place(get_cursor_relative_xy_position(event), text_ide.text_data);
    text_area_element.className = 'ta-active';
 
    text_ide.deselect();
@@ -104,7 +101,7 @@ function handle_mouse_move(event: MouseEvent): void {
    const x = event.clientX;
    const y = event.clientY;
 
-   const cursor_position = get_cursor_position(event);
+   const cursor_position = get_cursor_relative_xy_position(event);
 
    if (Math.abs(x - mouse.position.x) + Math.abs(y - mouse.position.y) > 3) {
       text_ide.select(mouse.start_position, cursor_position);
@@ -125,13 +122,14 @@ function handle_mouse_up(event: MouseEvent) {
    text_ide.set_active_row(cursor.get_position().row);
 }
 
-function get_cursor_position(event: MouseEvent): { row: number; col: number } {
-   const ol_top = document.getElementById('ordered-list')!.getBoundingClientRect().top;
-   const ol_left = document.getElementById('ordered-list')!.getBoundingClientRect().left;
+function get_cursor_relative_xy_position(event: MouseEvent): { row: number; col: number } {
+   const ide_top = document.getElementById('ordered-list')!.getBoundingClientRect().top;
+   const ide_left = document.getElementById('ordered-list')!.getBoundingClientRect().left;
 
    const mouse_rel_pos = {
-      x: event.clientX - _env_.ordered_list_padding_left - ol_left,
-      y: event.clientY - ol_top,
+      // hardcoded 35 change!!!!!!!1
+      x: event.clientX - ide_left - 35,
+      y: event.clientY - ide_top,
    };
    return cursor.calc_real_position(xy_to_rowcol(mouse_rel_pos), text_ide.text_data);
 }

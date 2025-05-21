@@ -13,7 +13,7 @@ class IDE_logic {
         this.preffered_col = null;
     }
     handle_keypress(key, cursor_position) {
-        _env_.ordered_list_padding_left = 30 + Math.floor(Math.log10(this.text_data.length)) * 10;
+        _env_.ol_pl = 30 + Math.floor(Math.log10(this.text_data.length)) * 10;
         if (keys.ignore.include(key))
             return cursor_position;
         if (keys.is_down['control'] && keys.arrow.include(key))

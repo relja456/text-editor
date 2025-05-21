@@ -90,9 +90,11 @@ body {
 }
 
 #ordered-list {
-    min-width: calc(100% - 30px);
+    min-width: calc(100% - 10px);
     width: fit-content;
-    padding-left: 30px;
+    height: 0;
+    list-style: none;
+    padding-left: 10px;
 }
 
 .line {
