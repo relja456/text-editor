@@ -1,8 +1,9 @@
 import Cursor from './cursor.js';
-import TextIDE from './text_ide.js';
-import global from './globals.js';
+import IDE_logic from './ide_logic.js';
 import Theme from './ui/theme_ui.js';
 import { keys } from './keys.js';
+import IDE_UI from './ui/ide_ui.js';
+import _env_ from './env.js';
 
 let is_ide_focused = false;
 const mouse = { down: false, start_position: { row: 0, col: 0 }, position: { x: 0, y: 0 } };
@@ -18,20 +19,20 @@ document.addEventListener('mouseup', handle_mouse_up);
 const text_area_element: HTMLElement = document.getElementById('text-area')!;
 const ordered_list_element: HTMLElement = document.getElementById('ordered-list')!;
 
-const text_ide = new TextIDE(ordered_list_element);
+const text_ide = new IDE_logic();
+
 text_ide.set_active_row(0);
-text_ide.render();
+IDE_UI.getInstance().render_lines_and_text(text_ide.text_data, ordered_list_element);
 
 const theme = new Theme();
 
 const last_line = document.getElementById(`line--${text_ide.text_data.length - 1}`)!;
 const lh = window.getComputedStyle(last_line).height;
-global.line_height = parseFloat(lh);
-
-global.char_width = 7.7;
+_env_.line_height = parseFloat(lh);
+_env_.char_width = 7.7;
 
 const cursor_el = document.getElementById('cursor')!;
-cursor_el.style.height = `${global.line_height}px`;
+cursor_el.style.height = `${_env_.line_height}px`;
 
 const cursor = new Cursor(cursor_el);
 
@@ -50,7 +51,11 @@ function handle_key_down(event: KeyboardEvent): void {
    }
 
    const position = text_ide.handle_keypress(input_key, cursor.get_position());
-   text_ide.render();
+
+   requestAnimationFrame(() =>
+      IDE_UI.getInstance().render_lines_and_text(text_ide.text_data, ordered_list_element)
+   );
+
    text_ide.set_active_row(position.row);
    cursor.set_position(position);
 }
@@ -87,8 +92,8 @@ function handle_mouse_down(event: MouseEvent): void {
 }
 
 function xy_to_rowcol(position: { x: number; y: number }): { row: number; col: number } {
-   const row = Math.floor(position.y / global.line_height);
-   const col = Math.floor(position.x / global.char_width);
+   const row = Math.floor(position.y / _env_.line_height);
+   const col = Math.floor(position.x / _env_.char_width);
 
    return { row, col };
 }
@@ -108,6 +113,10 @@ function handle_mouse_move(event: MouseEvent): void {
 
       mouse.position.x = x;
       mouse.position.y = y;
+
+      requestAnimationFrame(() =>
+         IDE_UI.getInstance().render_selected_text(text_ide.text_data, text_ide.selection)
+      );
    }
 }
 
@@ -121,7 +130,7 @@ function get_cursor_position(event: MouseEvent): { row: number; col: number } {
    const ol_left = document.getElementById('ordered-list')!.getBoundingClientRect().left;
 
    const mouse_rel_pos = {
-      x: event.clientX - global.ordered_list_padding_left - ol_left,
+      x: event.clientX - _env_.ordered_list_padding_left - ol_left,
       y: event.clientY - ol_top,
    };
    return cursor.calc_real_position(xy_to_rowcol(mouse_rel_pos), text_ide.text_data);
@@ -130,7 +139,7 @@ function get_cursor_position(event: MouseEvent): { row: number; col: number } {
 function handle_resize() {
    const last_line = document.getElementById(`line--${text_ide.text_data.length - 1}`)!;
    const lh = window.getComputedStyle(last_line).height;
-   global.line_height = parseFloat(lh);
+   _env_.line_height = parseFloat(lh);
 
    // text_ide.render();
    cursor.update_dom_position();

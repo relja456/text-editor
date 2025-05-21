@@ -1,4 +1,4 @@
-import global from './globals.js';
+import _env_ from './env.js';
 import row_col from './types.js';
 
 class Cursor {
@@ -91,9 +91,9 @@ class Cursor {
    }
 
    update_dom_position(): void {
-      this.dom_element.style.left = `${this.col * global.char_width + global.ordered_list_padding_left}px`;
-      this.dom_element.style.top = `${this.row * global.line_height + global.line_height}px`;
-      this.dom_element.style.height = `${global.line_height}px`;
+      this.dom_element.style.left = `${this.col * _env_.char_width + _env_.ordered_list_padding_left}px`;
+      this.dom_element.style.top = `${this.row * _env_.line_height + _env_.line_height}px`;
+      this.dom_element.style.height = `${_env_.line_height}px`;
    }
 
    get_position(): row_col {

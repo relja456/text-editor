@@ -1,8 +1,8 @@
 import { keys } from '../keys.js';
-import TextIDE from '../text_ide.js';
+import IDE_logic from '../ide_logic.js';
 import row_col from '../types.js';
 
-function handle_arrow(text_ide: TextIDE, key: string, cursor_position: row_col): row_col {
+function handle_arrow(text_ide: IDE_logic, key: string, cursor_position: row_col): row_col {
    const lines_total = text_ide.text_data.length;
    const last_line_len = text_ide.text_data[lines_total - 1].length;
    let cursor_last = cursor_position;
@@ -104,7 +104,7 @@ function handle_arrow(text_ide: TextIDE, key: string, cursor_position: row_col):
    return cursor_last;
 }
 
-function handle_control_arrow(text_ide: TextIDE, key: string, cursor_position: row_col): row_col {
+function handle_control_arrow(text_ide: IDE_logic, key: string, cursor_position: row_col): row_col {
    const lines_total = text_ide.text_data.length;
    const last_line_len = text_ide.text_data[lines_total - 1].length;
    let cursor_last = cursor_position;

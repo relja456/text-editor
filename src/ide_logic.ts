@@ -1,33 +1,32 @@
 import { keys } from './keys.js';
-import global from './globals.js';
 import row_col, { equals } from './types.js';
 import * as navigation from './keyboard_handle/navigation.js';
+import _env_ from './env.js';
+import IDE_UI from './ui/ide_ui.js';
 
-class TextIDE {
-   ordered_list_element: HTMLElement;
-
+class IDE_logic {
    text_data: string[] = [''];
+   old_text_data: string[] = [''];
    clipboard: string[] = [];
 
    active_row: number = -1;
-   selected_rows: number[] = [];
    selection: { start: row_col; finish: row_col } | null = null;
    preffered_col: number | null = null;
 
-   constructor(ordered_list_element: HTMLElement) {
-      this.ordered_list_element = ordered_list_element;
-   }
-
    handle_keypress(key: string, cursor_position: row_col): row_col {
-      if (keys.ignore.include(key)) return cursor_position;
+      _env_.ordered_list_padding_left = 30 + Math.floor(Math.log10(this.text_data.length)) * 10;
 
-      if (keys.is_down['control'] && keys.control_actions.include(key))
-         return this.handle_control_action(key, cursor_position);
+      if (keys.ignore.include(key)) return cursor_position;
 
       if (keys.is_down['control'] && keys.arrow.include(key))
          return navigation.handle_control_arrow(this, key, cursor_position);
 
       if (keys.arrow.include(key)) return navigation.handle_arrow(this, key, cursor_position);
+
+      // this.old_text_data = JSON.parse(this.text_data);
+
+      if (keys.is_down['control'] && keys.control_actions.include(key))
+         return this.handle_control_action(key, cursor_position);
 
       this.preffered_col = null;
 
@@ -55,7 +54,6 @@ class TextIDE {
    }
 
    handle_select_all(cursor_position: row_col): row_col {
-      this.deselect();
       this.selection = {
          start: { row: 0, col: 0 },
          finish: {
@@ -147,12 +145,8 @@ class TextIDE {
    handle_backspace(cursor_position: row_col): row_col {
       if (cursor_position.row === 0 && cursor_position.col === 0) return cursor_position;
 
-      console.log(this.selection);
-
       if (this.selection !== null) {
-         const smaller = this.sort_selection(this.selection.start, this.selection.finish).smaller;
-         this.delete_selection();
-         return smaller;
+         return this.delete_selection();
       }
 
       if (cursor_position.col === 0 && cursor_position.row > 0) {
@@ -180,7 +174,7 @@ class TextIDE {
       }
 
       const current_row = this.text_data[cursor_position.row];
-      const tab_width = global.tab_width;
+      const tab_width = _env_.tab_width;
       this.text_data[cursor_position.row] =
          current_row.slice(0, cursor_position.col) +
          ' '.repeat(tab_width) +
@@ -196,19 +190,19 @@ class TextIDE {
          key +
          this.text_data[cursor_position.row].slice(cursor_position.col);
 
-      global.char_width = (() => {
+      _env_.char_width = (() => {
          const text0 = document.getElementById('text--0');
          if (text0 && text0.innerText.length > 0) {
             return text0.getBoundingClientRect().width / text0.innerText.length;
          }
-         return global.char_width;
+         return _env_.char_width;
       })();
 
       return { row: cursor_position.row, col: cursor_position.col + 1 };
    }
 
    get_selected_text(text_data: string[], selection: { start: row_col; finish: row_col }): string[] {
-      const sorted_selection = this.sort_selection(selection.start, selection.finish);
+      const sorted_selection = IDE_logic.sort_selection(selection.start, selection.finish);
 
       const whole_text = JSON.parse(JSON.stringify(text_data));
       const selected_text = whole_text.slice(
@@ -232,18 +226,17 @@ class TextIDE {
    }
 
    delete_selection(): row_col {
-      const selection = JSON.parse(
-         JSON.stringify(this.sort_selection(this.selection!.start, this.selection!.finish))
-      );
+      if (!this.selection) return { row: 0, col: 0 };
+
+      const { smaller, bigger } = IDE_logic.sort_selection(this.selection.start, this.selection.finish);
 
       this.deselect();
 
-      const { smaller, bigger } = selection;
       if (smaller.row === bigger.row) {
          // Single line selection
          const line = this.text_data[smaller.row];
          this.text_data[smaller.row] = line.slice(0, smaller.col) + line.slice(bigger.col);
-         return selection.smaller;
+         return smaller;
       }
 
       // Multi-line selection
@@ -252,89 +245,30 @@ class TextIDE {
 
       // Remove lines in between
       this.text_data.splice(smaller.row, bigger.row - smaller.row + 1, firstLine + lastLine);
-      return selection.smaller;
+      return smaller;
    }
 
    select(start: row_col, finish: row_col): void {
-      this.deselect();
-
       if (equals(start, finish)) {
          this.selection = null;
          return;
       }
 
-      const pos = this.sort_selection(start, finish);
-
-      const selected_rows = this.map_selected_rows(pos.smaller, pos.bigger);
       this.selection = { start, finish };
 
-      for (const r in selected_rows) {
-         const row_num = parseInt(r);
-         const row_info = selected_rows[r];
-
-         this.apply_style_to_selected_row(row_num, row_info[0], row_info[1]);
-         this.selected_rows.push(row_num);
-      }
-
-      console.log('selected rows: ', this.selection);
+      IDE_UI.getInstance().render_selected_text(this.text_data, this.selection);
    }
 
    deselect(): void {
-      for (const [id, text] of this.text_data.entries()) {
-         let select_dom = document.getElementById(`select--${id}`);
-         let text_dom = document.getElementById(`text--${id}`);
-
-         if (select_dom) {
-            select_dom.style.left = '0px';
-            select_dom.style.width = '0px';
-         }
-
-         if (text_dom) text_dom.style.left = '0px';
-      }
-
-      this.selected_rows = [];
+      IDE_UI.getInstance().remove_selected_text(this.text_data, this.selection);
       this.selection = null;
    }
 
-   map_selected_rows(smaller: row_col, bigger: row_col): { [key: number]: [number, number] } {
-      const map: { [key: number]: [number, number] } = {};
-
-      if (bigger.row - smaller.row === 0) {
-         map[smaller.row] = [smaller.col, bigger.col];
-         return map;
-      }
-
-      if (bigger.row - smaller.row >= 1) {
-         (map[smaller.row] = [smaller.col, this.text_data[smaller.row].length]),
-            (map[bigger.row] = [0, bigger.col]);
-      }
-
-      if (bigger.row - smaller.row >= 2) {
-         for (let r = smaller.row + 1; r < bigger.row; r++) {
-            map[r] = [0, this.text_data[r].length];
-         }
-      }
-
-      return map;
-   }
-
-   apply_style_to_selected_row(row_num: number, col0: number, col1: number) {
-      col1 === 0 ? (col1 = 1) : null;
-      const indent = global.char_width * col0;
-      const width = global.char_width * (col1 - col0);
-      const selected_el = document.getElementById(`select--${row_num}`)!;
-      const text_el = document.getElementById(`text--${row_num}`)!;
-
-      selected_el.style.left = `${indent}px`;
-      selected_el.style.width = `${width}px`;
-   }
-
-   sort_selection(pos0: row_col, pos1: row_col): { smaller: row_col; bigger: row_col } {
+   static sort_selection(pos0: row_col, pos1: row_col): { smaller: row_col; bigger: row_col } {
       let smaller = null;
       let bigger = null;
 
       if (pos0.row === pos1.row && pos0.col === pos1.col) {
-         this.selected_rows = [];
          return { smaller: pos0, bigger: pos1 };
       }
 
@@ -357,45 +291,6 @@ class TextIDE {
       }
 
       return { smaller, bigger };
-   }
-
-   render(): void {
-      for (const [id, text] of this.text_data.entries()) {
-         let line_dom = document.getElementById(`line--${id}`);
-         let select_dom = document.getElementById(`select--${id}`);
-         let text_dom = document.getElementById(`text--${id}`);
-
-         if (!line_dom || !select_dom || !text_dom) {
-            line_dom = document.createElement('li');
-            line_dom.id = `line--${id}`;
-            line_dom.className = 'line';
-
-            select_dom = document.createElement('div');
-            select_dom.id = `select--${id}`;
-            select_dom.className = 'select';
-
-            text_dom = document.createElement('span');
-            text_dom.id = `text--${id}`;
-            text_dom.className = 'text';
-
-            line_dom.appendChild(select_dom);
-            line_dom.appendChild(text_dom);
-            this.ordered_list_element.append(line_dom);
-         }
-
-         line_dom.style.height = `${global.line_height}px`;
-         select_dom.style.height = `${global.line_height}px`;
-
-         text_dom.innerText = text;
-      }
-
-      let i = this.text_data.length;
-      let line = document.getElementById(`line--${i}`);
-      while (line !== null) {
-         line.remove();
-         i += 1;
-         line = document.getElementById(`line--${i}`);
-      }
    }
 
    set_active_row(row: number): void {
@@ -427,4 +322,4 @@ class TextIDE {
    }
 }
 
-export default TextIDE;
+export default IDE_logic;

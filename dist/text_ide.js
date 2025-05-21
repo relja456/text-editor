@@ -3,14 +3,13 @@ import global from './globals.js';
 import { equals } from './types.js';
 import * as navigation from './keyboard_handle/navigation.js';
 class TextIDE {
-    constructor(ordered_list_element) {
+    constructor() {
         this.text_data = [''];
         this.clipboard = [];
         this.active_row = -1;
         this.selected_rows = [];
         this.selection = null;
         this.preffered_col = null;
-        this.ordered_list_element = ordered_list_element;
     }
     handle_keypress(key, cursor_position) {
         if (keys.ignore.include(key))
@@ -284,37 +283,6 @@ class TextIDE {
             }
         }
         return { smaller, bigger };
-    }
-    render() {
-        for (const [id, text] of this.text_data.entries()) {
-            let line_dom = document.getElementById(`line--${id}`);
-            let select_dom = document.getElementById(`select--${id}`);
-            let text_dom = document.getElementById(`text--${id}`);
-            if (!line_dom || !select_dom || !text_dom) {
-                line_dom = document.createElement('li');
-                line_dom.id = `line--${id}`;
-                line_dom.className = 'line';
-                select_dom = document.createElement('div');
-                select_dom.id = `select--${id}`;
-                select_dom.className = 'select';
-                text_dom = document.createElement('span');
-                text_dom.id = `text--${id}`;
-                text_dom.className = 'text';
-                line_dom.appendChild(select_dom);
-                line_dom.appendChild(text_dom);
-                this.ordered_list_element.append(line_dom);
-            }
-            line_dom.style.height = `${global.line_height}px`;
-            select_dom.style.height = `${global.line_height}px`;
-            text_dom.innerText = text;
-        }
-        let i = this.text_data.length;
-        let line = document.getElementById(`line--${i}`);
-        while (line !== null) {
-            line.remove();
-            i += 1;
-            line = document.getElementById(`line--${i}`);
-        }
     }
     set_active_row(row) {
         if (row === this.active_row)
