@@ -92,10 +92,11 @@ function get_cursor_relative_xy_position(event) {
     const ide_top = document.getElementById('ordered-list').getBoundingClientRect().top;
     const ide_left = document.getElementById('ordered-list').getBoundingClientRect().left;
     const mouse_rel_pos = {
-        // hardcoded 35 change!!!!!!!1
-        x: event.clientX - ide_left - 35,
+        x: event.clientX - ide_left - _env_.ol_pl - _env_.marker_w,
         y: event.clientY - ide_top,
     };
+    console.log(mouse_rel_pos);
+    console.log(_env_.ol_pl, _env_.marker_w);
     return cursor.calc_real_position(xy_to_rowcol(mouse_rel_pos), text_ide.text_data);
 }
 function handle_resize() {

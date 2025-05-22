@@ -21,18 +21,13 @@ class IDE_UI {
         const ol_h = _env_.line_height * (text_data.length + 1);
         const ta_h = this.text_area_el.getBoundingClientRect().height;
         const scroll_top = this.text_area_el.scrollTop;
-        console.log(ol_h, ta_h, scroll_top);
         const [first, last] = this.get_visible_rows(ta_h, scroll_top, _env_.line_height);
-        console.log('visible:', first, last);
         this.ordered_list_el.innerHTML = '';
         if (ol_h > ta_h) {
-            console.log(';overflow');
             this.ordered_list_el.style.paddingTop = `${_env_.line_height * first}px`;
             this.ordered_list_el.style.height = `${_env_.line_height * (last - first)}px`;
             let calc_pb = _env_.line_height * (text_data.length - last);
             calc_pb >= 0 ? null : (calc_pb = 0);
-            console.log('calc_pb');
-            console.log(calc_pb);
             this.ordered_list_el.style.paddingBottom = `${calc_pb}px`;
             console.log(first, last);
             for (let row = first; row <= last; row++) {
@@ -45,13 +40,9 @@ class IDE_UI {
                 this.ordered_list_el.appendChild(this.add_line_dom(row, text_data[row]));
             }
         }
-        let i = text_data.length;
-        let line = document.getElementById(`line--${i}`);
-        while (line !== null) {
-            line.remove();
-            i += 1;
-            line = document.getElementById(`line--${i}`);
-        }
+        const marker_w = 26.4 + Math.floor(Math.log10(text_data.length)) * _env_.char_width;
+        _env_.marker_w = marker_w;
+        document.documentElement.style.setProperty(`--marker-width`, `${marker_w}px`);
         this.old_text = JSON.parse(JSON.stringify(text_data));
     }
     add_line_dom(row, text) {
