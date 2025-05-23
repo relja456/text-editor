@@ -18,7 +18,9 @@
 
     --line-height: 18px;
 
-    --marker-width: 18px;
+    --marker-width: 10px;
+
+    --ordered-list-pl: 10px;
 }
 
 *,
@@ -59,6 +61,7 @@ body {
     scrollbar-color: var(--accent) var(--primary-bg);
     scrollbar-width: thin;
 
+    white-space: nowrap;
     box-sizing: border-box;
 }
 
@@ -96,7 +99,7 @@ body {
     width: fit-content;
     height: 0;
     list-style: none;
-    padding-left: 10px;
+    padding-left: var(--ordered-list-pl);
 }
 
 .line {
@@ -112,7 +115,13 @@ body {
 }
 
 .marker {
+    text-align: right;
+    padding-right: 4px;
+    margin-right: 5px;
+    display: inline-block;
+    border-right: black 1px inset;
     width: var(--marker-width);
+    font-size: 14px;
 }
 
 .select {
@@ -131,6 +140,8 @@ body {
     height: var(--line-height);
     font-size: 14px;
     white-space: pre;
+
+    /* padding-left: 5px; */
 }
 
 #theme-container {

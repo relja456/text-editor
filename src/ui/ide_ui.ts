@@ -1,3 +1,4 @@
+import Cursor from '../cursor.js';
 import _env_ from '../env.js';
 import IDE_logic from '../ide_logic.js';
 import row_col from '../types.js';
@@ -5,12 +6,19 @@ import row_col from '../types.js';
 class IDE_UI {
    private static instance: IDE_UI;
 
-   private old_text: string[] = [''];
+   ide_logic: IDE_logic | null = null;
+   cursor: Cursor | null = null;
 
    private text_area_el: HTMLElement;
    private ordered_list_el: HTMLElement;
 
+   private last_rendered_active_row: number = -1;
+
+   private last_text: string[] = [''];
+   private visible_rows: [number, number] = [0, 0];
+
    private constructor() {
+      // this.ide_logic ;
       this.text_area_el = document.getElementById('text-area')!;
       this.ordered_list_el = document.getElementById('ordered-list')!;
    }
@@ -22,13 +30,22 @@ class IDE_UI {
       return IDE_UI.instance;
    }
 
-   render_lines_and_text(text_data: string[]): void {
-      const diff = this.text_diff(this.old_text, text_data);
+   render(text_data: string[], selection: { start: row_col; finish: row_col } | null): void {
+      if (_env_.marker_start_w === 0) {
+         _env_.marker_start_w =
+            document.getElementById('marker--0')!.getBoundingClientRect().width - _env_.marker_pr;
+      }
 
-      console.log('total lines in file: ' + text_data.length);
+      _env_.marker_w =
+         _env_.marker_start_w + Math.floor(Math.log10(text_data.length)) * _env_.char_width;
 
-      // this.ordered_list_el.style.paddingLeft = `${_env_.ordered_list_padding_left}px`;
-      // this.ordered_list_el.style.minWidth = `calc(100% - ${_env_.ordered_list_padding_left}px)`;
+      document.documentElement.style.setProperty(`--marker-width`, `${_env_.marker_w}px`);
+      document.documentElement.style.setProperty(`--ordered-list-pl`, `${_env_.ol_pl}px`);
+
+      const diff = this.text_diff(this.last_text, text_data);
+      console.log('this.cursor?.row');
+      console.log(this.cursor?.row);
+      // console.log('total lines in file: ' + text_data.length);
 
       const fragment = document.createDocumentFragment();
 
@@ -37,33 +54,36 @@ class IDE_UI {
       const scroll_top = this.text_area_el.scrollTop;
 
       const [first, last] = this.get_visible_rows(ta_h, scroll_top, _env_.line_height);
+      console.log(first, last);
+      this.ordered_list_el.style.height = `${_env_.line_height * (last - first)}px`;
+      this.ordered_list_el.style.paddingTop = `${_env_.line_height * first}px`;
+
+      let calc_pb = _env_.line_height * (text_data.length - last);
+      calc_pb >= 0 ? null : (calc_pb = 0);
+      this.ordered_list_el.style.paddingBottom = `${calc_pb}px`;
 
       this.ordered_list_el.innerHTML = '';
 
       if (ol_h > ta_h) {
-         this.ordered_list_el.style.paddingTop = `${_env_.line_height * first}px`;
-         this.ordered_list_el.style.height = `${_env_.line_height * (last - first)}px`;
-
-         let calc_pb = _env_.line_height * (text_data.length - last);
-         calc_pb >= 0 ? null : (calc_pb = 0);
-         this.ordered_list_el.style.paddingBottom = `${calc_pb}px`;
-
-         console.log(first, last);
          for (let row = first; row <= last; row++) {
+            if (row >= text_data.length) break;
             const el = this.add_line_dom(row, text_data[row]);
-            this.ordered_list_el.appendChild(el);
+            fragment.appendChild(el);
          }
       } else {
          for (let row = 0; row < text_data.length; row++) {
-            this.ordered_list_el.appendChild(this.add_line_dom(row, text_data[row]));
+            fragment.appendChild(this.add_line_dom(row, text_data[row]));
          }
       }
 
-      const marker_w = 26.4 + Math.floor(Math.log10(text_data.length)) * _env_.char_width;
-      _env_.marker_w = marker_w;
-      document.documentElement.style.setProperty(`--marker-width`, `${marker_w}px`);
+      this.ordered_list_el.appendChild(fragment);
 
-      this.old_text = JSON.parse(JSON.stringify(text_data));
+      this.last_text = JSON.parse(JSON.stringify(text_data));
+
+      this.render_selected_text(text_data, selection);
+      this.render_active_row(this.cursor!.row);
+
+      this.cursor?.update_dom_position();
    }
 
    private add_line_dom(row: number, text: string): HTMLElement {
@@ -80,7 +100,7 @@ class IDE_UI {
          marker_dom = document.createElement('span');
          marker_dom.id = `marker--${row}`;
          marker_dom.className = 'marker';
-         marker_dom.innerText = `${row + 1}. `;
+         marker_dom.innerText = `${row + 1}`;
 
          select_dom = document.createElement('div');
          select_dom.id = `select--${row}`;
@@ -135,38 +155,52 @@ class IDE_UI {
    ): [start: number, finish: number] {
       const rows_in_view = Math.floor(outside_h / line_height);
       const scrolled_rows = Math.floor(scroll_top / line_height);
-      return [scrolled_rows, scrolled_rows + rows_in_view];
+
+      let min = scrolled_rows - 1;
+      min = min < 0 ? 0 : min;
+      let max = scrolled_rows + rows_in_view;
+
+      min = min > this.ide_logic!.text_data.length - 1 ? this.ide_logic!.text_data.length : min;
+      max = max > this.ide_logic!.text_data.length - 1 ? this.ide_logic!.text_data.length : max;
+
+      this.visible_rows = [min, max];
+      return [min, max];
    }
 
    render_selected_text(text_data: string[], selection: { start: row_col; finish: row_col } | null) {
       if (selection === null) return;
-
       const sorted = IDE_logic.sort_selection(selection.start, selection.finish);
-
       const selected_rows_map = this.get_map_of_selection(text_data, sorted.smaller, sorted.bigger);
 
-      Object.entries(selected_rows_map).forEach(([row, [col0, col1]]) => {
-         this.apply_style_one_selected_row(Number(row), col0, col1);
-         console.log('selecting row');
-      });
+      for (let row = this.visible_rows[0]; row < this.visible_rows[1]; row++) {
+         const selection_w = selected_rows_map[row];
+         if (selection_w) {
+            this.apply_style_one_selected_row(row, selection_w[0], selection_w[1]);
+         } else {
+            this.remove_style_one_selected_row(row);
+         }
+      }
    }
 
-   remove_selected_text(text_data: string[], selection: { start: row_col; finish: row_col } | null) {
-      if (selection === null) return;
+   render_active_row(row: number): void {
+      console.log(row);
+      if (row === -1) return;
+      if (row < this.visible_rows[0] || row > this.visible_rows[1]) return;
+      // if (row === this.last_rendered_active_row) return;
 
-      const sorted = IDE_logic.sort_selection(selection.start, selection.finish);
+      console.log('active');
 
-      const selected_rows_map = this.get_map_of_selection(text_data, sorted.smaller, sorted.bigger);
+      const new_selected_row_el = document.getElementById(`line--${row}`)!;
+      if (new_selected_row_el === null) return;
 
-      Object.entries(selected_rows_map).forEach(([row, [col0, col1]]) => {
-         console.log('deselecting row');
-         this.remove_style_one_selected_row(Number(row));
-      });
+      new_selected_row_el.className = 'line-selected';
+
+      this.last_rendered_active_row = row;
    }
 
    apply_style_one_selected_row(row_num: number, col0: number, col1: number) {
       col1 === 0 ? (col1 = 1) : null;
-      const indent = _env_.char_width * col0;
+      const indent = _env_.char_width * col0 + _env_.cursor_x_offset();
       const width = _env_.char_width * (col1 - col0);
       const selected_el = document.getElementById(`select--${row_num}`)!;
 

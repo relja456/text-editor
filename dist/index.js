@@ -13,17 +13,21 @@ document.addEventListener('mousedown', handle_mouse_down);
 document.addEventListener('mousemove', handle_mouse_move);
 document.addEventListener('mouseup', handle_mouse_up);
 const text_area_element = document.getElementById('text-area');
+text_area_element.addEventListener('scroll', () => {
+    IDE_UI.getInstance().render(text_ide.text_data, text_ide.selection);
+});
 const text_ide = new IDE_logic();
-text_ide.set_active_row(0);
-IDE_UI.getInstance().render_lines_and_text(text_ide.text_data);
+IDE_UI.getInstance().ide_logic = text_ide;
+const cursor_el = document.getElementById('cursor');
+cursor_el.style.height = `${_env_.line_height}px`;
+const cursor = new Cursor(cursor_el);
+IDE_UI.getInstance().cursor = cursor;
+IDE_UI.getInstance().render(text_ide.text_data, text_ide.selection);
 const theme = new Theme();
 const last_line = document.getElementById(`line--${text_ide.text_data.length - 1}`);
 const lh = window.getComputedStyle(last_line).height;
 _env_.line_height = parseFloat(lh);
 _env_.char_width = 7.7;
-const cursor_el = document.getElementById('cursor');
-cursor_el.style.height = `${_env_.line_height}px`;
-const cursor = new Cursor(cursor_el);
 function handle_key_down(event) {
     const input_key = event.key;
     if (!is_ide_focused)
@@ -36,9 +40,8 @@ function handle_key_down(event) {
         keys.is_down[key] = true;
     }
     const position = text_ide.handle_keypress(input_key, cursor.get_position());
-    requestAnimationFrame(() => IDE_UI.getInstance().render_lines_and_text(text_ide.text_data));
-    text_ide.set_active_row(position.row);
     cursor.set_position(position);
+    IDE_UI.getInstance().render(text_ide.text_data, text_ide.selection);
 }
 function handle_key_up(event) {
     const input_key = event.key;
@@ -51,18 +54,17 @@ function handle_mouse_down(event) {
     is_ide_focused = is_inside_element(event.x, event.y, text_area_element);
     if (!is_ide_focused) {
         cursor.remove();
-        text_ide.reset_active_row();
         text_area_element.className = 'ta-inactive';
         return;
     }
     const cursor_position = cursor.place(get_cursor_relative_xy_position(event), text_ide.text_data);
     text_area_element.className = 'ta-active';
+    IDE_UI.getInstance().render(text_ide.text_data, text_ide.selection);
     text_ide.deselect();
     mouse.down = true;
     mouse.start_position = cursor.get_position();
     mouse.position.x = event.clientX;
     mouse.position.y = event.clientY;
-    text_ide.set_active_row(cursor_position.row);
 }
 function xy_to_rowcol(position) {
     const row = Math.floor(position.y / _env_.line_height);
@@ -78,25 +80,21 @@ function handle_mouse_move(event) {
     if (Math.abs(x - mouse.position.x) + Math.abs(y - mouse.position.y) > 3) {
         text_ide.select(mouse.start_position, cursor_position);
         cursor.set_position(cursor_position);
-        text_ide.reset_active_row();
         mouse.position.x = x;
         mouse.position.y = y;
-        requestAnimationFrame(() => IDE_UI.getInstance().render_selected_text(text_ide.text_data, text_ide.selection));
+        IDE_UI.getInstance().render_selected_text(text_ide.text_data, text_ide.selection);
     }
 }
 function handle_mouse_up(event) {
     mouse.down = false;
-    text_ide.set_active_row(cursor.get_position().row);
 }
 function get_cursor_relative_xy_position(event) {
     const ide_top = document.getElementById('ordered-list').getBoundingClientRect().top;
     const ide_left = document.getElementById('ordered-list').getBoundingClientRect().left;
     const mouse_rel_pos = {
-        x: event.clientX - ide_left - _env_.ol_pl - _env_.marker_w,
+        x: event.clientX - ide_left - _env_.cursor_x_offset(),
         y: event.clientY - ide_top,
     };
-    console.log(mouse_rel_pos);
-    console.log(_env_.ol_pl, _env_.marker_w);
     return cursor.calc_real_position(xy_to_rowcol(mouse_rel_pos), text_ide.text_data);
 }
 function handle_resize() {

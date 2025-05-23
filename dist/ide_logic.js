@@ -8,7 +8,6 @@ class IDE_logic {
         this.text_data = [''];
         this.old_text_data = [''];
         this.clipboard = [];
-        this.active_row = -1;
         this.selection = null;
         this.preffered_col = null;
     }
@@ -19,7 +18,6 @@ class IDE_logic {
             return navigation.handle_control_arrow(this, key, cursor_position);
         if (keys.arrow.include(key))
             return navigation.handle_arrow(this, key, cursor_position);
-        // this.old_text_data = JSON.parse(this.text_data);
         if (keys.is_down['control'] && keys.control_actions.include(key))
             return this.handle_control_action(key, cursor_position);
         this.preffered_col = null;
@@ -206,7 +204,7 @@ class IDE_logic {
         IDE_UI.getInstance().render_selected_text(this.text_data, this.selection);
     }
     deselect() {
-        IDE_UI.getInstance().remove_selected_text(this.text_data, this.selection);
+        // IDE_UI.getInstance().remove_selected_text(this.text_data, this.selection);
         this.selection = null;
     }
     static sort_selection(pos0, pos1) {
@@ -237,22 +235,11 @@ class IDE_logic {
         }
         return { smaller, bigger };
     }
-    set_active_row(row) {
-        if (row === this.active_row)
-            return;
-        const new_selected_row_el = document.getElementById(`line--${row}`);
-        if (new_selected_row_el === null)
-            return;
-        new_selected_row_el.className = 'line-selected';
-        this.reset_active_row();
-        this.active_row = row;
-    }
-    reset_active_row() {
-        const selected_row = document.getElementById(`line--${this.active_row}`);
-        this.active_row = -1;
-        if (selected_row)
-            selected_row.className = 'line';
-    }
+    // reset_active_row() {
+    //    const selected_row = document.getElementById(`line--${this.active_row}`);
+    //    this.active_row = -1;
+    //    if (selected_row) selected_row.className = 'line';
+    // }
     remove_nth_char(s, n) {
         // zero indexing
         if (n < 0 || n >= s.length) {

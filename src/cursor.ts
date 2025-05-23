@@ -43,6 +43,7 @@ class Cursor {
       if (real_position.row != this.row || real_position.col != this.col) {
          this.dom_element.className = 'active';
          this.row = real_position.row;
+         console.log('set row');
          this.col = real_position.col;
          this.update_dom_position();
       }
@@ -97,7 +98,7 @@ class Cursor {
    }
 
    update_dom_position(): void {
-      this.dom_element.style.left = `${this.col * _env_.char_width + 35}px`;
+      this.dom_element.style.left = `${this.col * _env_.char_width + _env_.cursor_x_offset()}px`;
       this.dom_element.style.top = `${this.row * _env_.line_height + _env_.line_height}px`;
       this.dom_element.style.height = `${_env_.line_height}px`;
    }

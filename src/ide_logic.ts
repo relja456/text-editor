@@ -9,9 +9,9 @@ class IDE_logic {
    old_text_data: string[] = [''];
    clipboard: string[] = [];
 
-   active_row: number = -1;
    selection: { start: row_col; finish: row_col } | null = null;
    preffered_col: number | null = null;
+
 
    handle_keypress(key: string, cursor_position: row_col): row_col {
       if (keys.ignore.include(key)) return cursor_position;
@@ -20,8 +20,6 @@ class IDE_logic {
          return navigation.handle_control_arrow(this, key, cursor_position);
 
       if (keys.arrow.include(key)) return navigation.handle_arrow(this, key, cursor_position);
-
-      // this.old_text_data = JSON.parse(this.text_data);
 
       if (keys.is_down['control'] && keys.control_actions.include(key))
          return this.handle_control_action(key, cursor_position);
@@ -258,7 +256,7 @@ class IDE_logic {
    }
 
    deselect(): void {
-      IDE_UI.getInstance().remove_selected_text(this.text_data, this.selection);
+      // IDE_UI.getInstance().remove_selected_text(this.text_data, this.selection);
       this.selection = null;
    }
 
@@ -291,25 +289,11 @@ class IDE_logic {
       return { smaller, bigger };
    }
 
-   set_active_row(row: number): void {
-      if (row === this.active_row) return;
-
-      const new_selected_row_el = document.getElementById(`line--${row}`)!;
-
-      if (new_selected_row_el === null) return;
-
-      new_selected_row_el.className = 'line-selected';
-
-      this.reset_active_row();
-
-      this.active_row = row;
-   }
-
-   reset_active_row() {
-      const selected_row = document.getElementById(`line--${this.active_row}`);
-      this.active_row = -1;
-      if (selected_row) selected_row.className = 'line';
-   }
+   // reset_active_row() {
+   //    const selected_row = document.getElementById(`line--${this.active_row}`);
+   //    this.active_row = -1;
+   //    if (selected_row) selected_row.className = 'line';
+   // }
 
    remove_nth_char(s: string, n: number): string {
       // zero indexing
