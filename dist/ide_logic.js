@@ -11,6 +11,12 @@ class IDE_logic {
         this.selection = null;
         this.preffered_col = null;
     }
+    static getInstance() {
+        if (!IDE_logic.instance) {
+            IDE_logic.instance = new IDE_logic();
+        }
+        return IDE_logic.instance;
+    }
     handle_keypress(key, cursor_position) {
         if (keys.ignore.include(key))
             return cursor_position;
@@ -248,4 +254,5 @@ class IDE_logic {
         return s.slice(0, n) + s.slice(n + 1);
     }
 }
+IDE_logic.instance = null;
 export default IDE_logic;

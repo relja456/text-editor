@@ -4,6 +4,7 @@ import Theme from './ui/theme_ui.js';
 import { keys } from './keys.js';
 import IDE_UI from './ui/ide_ui.js';
 import _env_ from './env.js';
+import File_IO from './file_io.js';
 let is_ide_focused = false;
 const mouse = { down: false, start_position: { row: 0, col: 0 }, position: { x: 0, y: 0 } };
 addEventListener('keydown', handle_key_down);
@@ -12,9 +13,11 @@ addEventListener('resize', handle_resize);
 document.addEventListener('mousedown', handle_mouse_down);
 document.addEventListener('mousemove', handle_mouse_move);
 document.addEventListener('mouseup', handle_mouse_up);
+const file_io = new File_IO();
+document.getElementById('fileInput').addEventListener('change', file_io.handle_file_input);
 const text_area_element = document.getElementById('text-area');
 text_area_element.addEventListener('scroll', () => {
-    IDE_UI.getInstance().render(text_ide.text_data, text_ide.selection);
+    IDE_UI.getInstance().render();
 });
 const text_ide = new IDE_logic();
 IDE_UI.getInstance().ide_logic = text_ide;
@@ -22,7 +25,7 @@ const cursor_el = document.getElementById('cursor');
 cursor_el.style.height = `${_env_.line_height}px`;
 const cursor = new Cursor(cursor_el);
 IDE_UI.getInstance().cursor = cursor;
-IDE_UI.getInstance().render(text_ide.text_data, text_ide.selection);
+IDE_UI.getInstance().render();
 const theme = new Theme();
 const last_line = document.getElementById(`line--${text_ide.text_data.length - 1}`);
 const lh = window.getComputedStyle(last_line).height;
@@ -41,7 +44,7 @@ function handle_key_down(event) {
     }
     const position = text_ide.handle_keypress(input_key, cursor.get_position());
     cursor.set_position(position);
-    IDE_UI.getInstance().render(text_ide.text_data, text_ide.selection);
+    IDE_UI.getInstance().render();
 }
 function handle_key_up(event) {
     const input_key = event.key;
@@ -59,7 +62,7 @@ function handle_mouse_down(event) {
     }
     const cursor_position = cursor.place(get_cursor_relative_xy_position(event), text_ide.text_data);
     text_area_element.className = 'ta-active';
-    IDE_UI.getInstance().render(text_ide.text_data, text_ide.selection);
+    IDE_UI.getInstance().render();
     text_ide.deselect();
     mouse.down = true;
     mouse.start_position = cursor.get_position();

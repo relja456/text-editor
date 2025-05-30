@@ -12,6 +12,14 @@ class IDE_logic {
    selection: { start: row_col; finish: row_col } | null = null;
    preffered_col: number | null = null;
 
+   private static instance: IDE_logic | null = null;
+
+   static getInstance(): IDE_logic {
+      if (!IDE_logic.instance) {
+         IDE_logic.instance = new IDE_logic();
+      }
+      return IDE_logic.instance;
+   }
 
    handle_keypress(key: string, cursor_position: row_col): row_col {
       if (keys.ignore.include(key)) return cursor_position;

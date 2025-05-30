@@ -17,48 +17,49 @@ class IDE_UI {
         }
         return IDE_UI.instance;
     }
-    render(text_data, selection) {
+    render() {
         var _a, _b;
         if (_env_.marker_start_w === 0) {
             _env_.marker_start_w =
                 document.getElementById('marker--0').getBoundingClientRect().width - _env_.marker_pr;
         }
         _env_.marker_w =
-            _env_.marker_start_w + Math.floor(Math.log10(text_data.length)) * _env_.char_width;
+            _env_.marker_start_w +
+                Math.floor(Math.log10(this.ide_logic.text_data.length)) * _env_.char_width;
         document.documentElement.style.setProperty(`--marker-width`, `${_env_.marker_w}px`);
         document.documentElement.style.setProperty(`--ordered-list-pl`, `${_env_.ol_pl}px`);
-        const diff = this.text_diff(this.last_text, text_data);
+        const diff = this.text_diff(this.last_text, this.ide_logic.text_data);
         console.log('this.cursor?.row');
         console.log((_a = this.cursor) === null || _a === void 0 ? void 0 : _a.row);
         // console.log('total lines in file: ' + text_data.length);
         const fragment = document.createDocumentFragment();
-        const ol_h = _env_.line_height * (text_data.length + 1);
+        const ol_h = _env_.line_height * (this.ide_logic.text_data.length + 1);
         const ta_h = this.text_area_el.getBoundingClientRect().height;
         const scroll_top = this.text_area_el.scrollTop;
         const [first, last] = this.get_visible_rows(ta_h, scroll_top, _env_.line_height);
         console.log(first, last);
         this.ordered_list_el.style.height = `${_env_.line_height * (last - first)}px`;
         this.ordered_list_el.style.paddingTop = `${_env_.line_height * first}px`;
-        let calc_pb = _env_.line_height * (text_data.length - last);
+        let calc_pb = _env_.line_height * (this.ide_logic.text_data.length - last);
         calc_pb >= 0 ? null : (calc_pb = 0);
         this.ordered_list_el.style.paddingBottom = `${calc_pb}px`;
         this.ordered_list_el.innerHTML = '';
         if (ol_h > ta_h) {
             for (let row = first; row <= last; row++) {
-                if (row >= text_data.length)
+                if (row >= this.ide_logic.text_data.length)
                     break;
-                const el = this.add_line_dom(row, text_data[row]);
+                const el = this.add_line_dom(row, this.ide_logic.text_data[row]);
                 fragment.appendChild(el);
             }
         }
         else {
-            for (let row = 0; row < text_data.length; row++) {
-                fragment.appendChild(this.add_line_dom(row, text_data[row]));
+            for (let row = 0; row < this.ide_logic.text_data.length; row++) {
+                fragment.appendChild(this.add_line_dom(row, this.ide_logic.text_data[row]));
             }
         }
         this.ordered_list_el.appendChild(fragment);
-        this.last_text = JSON.parse(JSON.stringify(text_data));
-        this.render_selected_text(text_data, selection);
+        this.last_text = JSON.parse(JSON.stringify(this.ide_logic.text_data));
+        this.render_selected_text(this.ide_logic.text_data, this.ide_logic.selection);
         this.render_active_row(this.cursor.row);
         (_b = this.cursor) === null || _b === void 0 ? void 0 : _b.update_dom_position();
     }
