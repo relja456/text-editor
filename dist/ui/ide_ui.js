@@ -18,7 +18,7 @@ class IDE_UI {
         return IDE_UI.instance;
     }
     render() {
-        var _a, _b;
+        var _a;
         if (_env_.marker_start_w === 0) {
             _env_.marker_start_w =
                 document.getElementById('marker--0').getBoundingClientRect().width - _env_.marker_pr;
@@ -29,15 +29,11 @@ class IDE_UI {
         document.documentElement.style.setProperty(`--marker-width`, `${_env_.marker_w}px`);
         document.documentElement.style.setProperty(`--ordered-list-pl`, `${_env_.ol_pl}px`);
         const diff = this.text_diff(this.last_text, this.ide_logic.text_data);
-        console.log('this.cursor?.row');
-        console.log((_a = this.cursor) === null || _a === void 0 ? void 0 : _a.row);
-        // console.log('total lines in file: ' + text_data.length);
         const fragment = document.createDocumentFragment();
         const ol_h = _env_.line_height * (this.ide_logic.text_data.length + 1);
         const ta_h = this.text_area_el.getBoundingClientRect().height;
         const scroll_top = this.text_area_el.scrollTop;
         const [first, last] = this.get_visible_rows(ta_h, scroll_top, _env_.line_height);
-        console.log(first, last);
         this.ordered_list_el.style.height = `${_env_.line_height * (last - first)}px`;
         this.ordered_list_el.style.paddingTop = `${_env_.line_height * first}px`;
         let calc_pb = _env_.line_height * (this.ide_logic.text_data.length - last);
@@ -61,7 +57,7 @@ class IDE_UI {
         this.last_text = JSON.parse(JSON.stringify(this.ide_logic.text_data));
         this.render_selected_text(this.ide_logic.text_data, this.ide_logic.selection);
         this.render_active_row(this.cursor.row);
-        (_b = this.cursor) === null || _b === void 0 ? void 0 : _b.update_dom_position();
+        (_a = this.cursor) === null || _a === void 0 ? void 0 : _a.update_dom_position();
     }
     add_line_dom(row, text) {
         let line_dom = document.getElementById(`line--${row}`);
@@ -138,13 +134,11 @@ class IDE_UI {
         }
     }
     render_active_row(row) {
-        console.log(row);
         if (row === -1)
             return;
         if (row < this.visible_rows[0] || row > this.visible_rows[1])
             return;
         // if (row === this.last_rendered_active_row) return;
-        console.log('active');
         const new_selected_row_el = document.getElementById(`line--${row}`);
         if (new_selected_row_el === null)
             return;

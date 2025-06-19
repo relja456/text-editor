@@ -44,9 +44,6 @@ class IDE_UI {
       document.documentElement.style.setProperty(`--ordered-list-pl`, `${_env_.ol_pl}px`);
 
       const diff = this.text_diff(this.last_text, this.ide_logic!.text_data);
-      console.log('this.cursor?.row');
-      console.log(this.cursor?.row);
-      // console.log('total lines in file: ' + text_data.length);
 
       const fragment = document.createDocumentFragment();
 
@@ -55,7 +52,7 @@ class IDE_UI {
       const scroll_top = this.text_area_el.scrollTop;
 
       const [first, last] = this.get_visible_rows(ta_h, scroll_top, _env_.line_height);
-      console.log(first, last);
+
       this.ordered_list_el.style.height = `${_env_.line_height * (last - first)}px`;
       this.ordered_list_el.style.paddingTop = `${_env_.line_height * first}px`;
 
@@ -184,12 +181,9 @@ class IDE_UI {
    }
 
    render_active_row(row: number): void {
-      console.log(row);
       if (row === -1) return;
       if (row < this.visible_rows[0] || row > this.visible_rows[1]) return;
       // if (row === this.last_rendered_active_row) return;
-
-      console.log('active');
 
       const new_selected_row_el = document.getElementById(`line--${row}`)!;
       if (new_selected_row_el === null) return;

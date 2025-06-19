@@ -1,42 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="stylesheet" href="style.css" />
+      <title>Text Editor</title>
+   </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Text Editor</title>
-</head>
+   <body>
+      <div id="root-page">
+         <div id='file-name-wrapper'>
+            <input type="text" id="file-name" value="Untitled.txt"></input>
+         </div>
 
-<body>
-
-    <div id="root-page">
-        <h1>JS IDE</h1>
-
-        <div id="text-area" class="ta-inactive">
-
+         <div id="text-area" class="ta-inactive">
             <div id="cursor" class="inactive"></div>
 
             <ol id="ordered-list">
-                <li class="line" id="line--0">
-                    <span class="marker" id="marker--0">1</span>
-                    <div class="select" id="select--0"></div>   
-                    <span class="text" id="text--0"></span>
-                </li>
+               <li class="line" id="line--0">
+                  <span class="marker" id="marker--0">1</span>
+                  <div class="select" id="select--0"></div>
+                  <span class="text" id="text--0"></span>
+               </li>
             </ol>
+         </div>
 
-        </div>
-
-        <div id="theme-container">
+         <div id="theme-container">
             <!-- implementation in ts -->
-        </div>
+         </div>
 
-        <input type="file" id="fileInput" />
+         <div>
+            <label class="file-label" for="upload">Select a File</label>
+            <input type="file" id="upload" class="file-input" />
 
-    </div>
+            <button id="save-btn">Save file</button>
+         </div>
+      </div>
+   </body>
 
-</body>
-
-<script src="dist/index.js" type="module"></script>
-
+   <script src="dist/index.js" type="module"></script>
 </html>

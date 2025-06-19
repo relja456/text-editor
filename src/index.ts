@@ -19,12 +19,15 @@ document.addEventListener('mouseup', handle_mouse_up);
 
 const file_io = new File_IO();
 
-document.getElementById('fileInput')!.addEventListener('change', file_io.handle_file_input);
-
 const text_area_element: HTMLElement = document.getElementById('text-area')!;
 
 text_area_element.addEventListener('scroll', () => {
    IDE_UI.getInstance().render();
+});
+
+const file_name = document.getElementById('file-name') as HTMLInputElement;
+file_name!.addEventListener('input', function (event) {
+   file_name.style.width = `${file_name.value.length}ch`;
 });
 
 const text_ide = new IDE_logic();
