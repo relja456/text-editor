@@ -28,6 +28,7 @@ text_area_element.addEventListener('scroll', () => {
 const file_name = document.getElementById('file-name') as HTMLInputElement;
 file_name!.addEventListener('input', function (event) {
    file_name.style.width = `${file_name.value.length}ch`;
+   file_io.file_name = file_name.value;
 });
 
 const text_ide = new IDE_logic();
@@ -84,11 +85,11 @@ function handle_mouse_down(event: MouseEvent): void {
       return;
    }
 
-   const cursor_position = cursor.place(get_cursor_relative_xy_position(event), text_ide.text_data);
+   cursor.place(get_cursor_relative_xy_position(event), text_ide.text_data);
    text_area_element.className = 'ta-active';
-   IDE_UI.getInstance().render();
 
    text_ide.deselect();
+   IDE_UI.getInstance().render();
 
    mouse.down = true;
    mouse.start_position = cursor.get_position();
