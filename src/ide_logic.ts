@@ -147,11 +147,11 @@ class IDE_logic {
    }
 
    handle_backspace(cursor_position: row_col): row_col {
-      if (cursor_position.row === 0 && cursor_position.col === 0) return cursor_position;
-
       if (this.selection !== null) {
          return this.delete_selection();
       }
+
+      if (cursor_position.row === 0 && cursor_position.col === 0) return cursor_position;
 
       if (cursor_position.col === 0 && cursor_position.row > 0) {
          this.text_data.splice(cursor_position.row, 1);
@@ -187,7 +187,10 @@ class IDE_logic {
    }
 
    handle_input(key: string, cursor_position: row_col): row_col {
-      this.deselect();
+      if (this.selection !== null) {
+         this.delete_selection();
+         this.deselect();
+      }
 
       this.text_data[cursor_position.row] =
          this.text_data[cursor_position.row].slice(0, cursor_position.col) +

@@ -16,7 +16,7 @@ const ignore_codes = [
 const control_actions = ['c', 'v', 'x', 'a'];
 const hold_states = ['Control', 'Shift'];
 const is_down = { control: false, shift: false };
-const prevent_defaults = ['Tab', 'Space', 'Control'];
+const prevent_defaults = ['Tab', 'Space', 'Control', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'];
 export const keys = {
     arrow: create_keys(arrow_codes),
     ignore: create_keys(ignore_codes),

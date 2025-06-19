@@ -50,10 +50,11 @@ _env_.char_width = 7.7;
 
 function handle_key_down(event: KeyboardEvent): void {
    const input_key = event.key;
+   const input_code = event.code;
 
    if (!is_ide_focused) return;
 
-   if (keys.prevent_defaults.include(input_key)) {
+   if (keys.prevent_defaults.include(input_code)) {
       event.preventDefault();
    }
 

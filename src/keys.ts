@@ -27,7 +27,7 @@ const hold_states = ['Control', 'Shift'];
 
 const is_down: { [key: string]: boolean } = { control: false, shift: false };
 
-const prevent_defaults = ['Tab', 'Space', 'Control'];
+const prevent_defaults = ['Tab', 'Space', 'Control', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'];
 
 export const keys = {
    arrow: create_keys(arrow_codes),

@@ -122,11 +122,11 @@ class IDE_logic {
         return { row: cursor_position.row + 1, col: 0 };
     }
     handle_backspace(cursor_position) {
-        if (cursor_position.row === 0 && cursor_position.col === 0)
-            return cursor_position;
         if (this.selection !== null) {
             return this.delete_selection();
         }
+        if (cursor_position.row === 0 && cursor_position.col === 0)
+            return cursor_position;
         if (cursor_position.col === 0 && cursor_position.row > 0) {
             this.text_data.splice(cursor_position.row, 1);
             return {
@@ -156,7 +156,10 @@ class IDE_logic {
         return { row: cursor_position.row, col: cursor_position.col + 4 };
     }
     handle_input(key, cursor_position) {
-        this.deselect();
+        if (this.selection !== null) {
+            this.delete_selection();
+            this.deselect();
+        }
         this.text_data[cursor_position.row] =
             this.text_data[cursor_position.row].slice(0, cursor_position.col) +
                 key +

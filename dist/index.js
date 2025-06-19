@@ -37,9 +37,10 @@ _env_.line_height = parseFloat(lh);
 _env_.char_width = 7.7;
 function handle_key_down(event) {
     const input_key = event.key;
+    const input_code = event.code;
     if (!is_ide_focused)
         return;
-    if (keys.prevent_defaults.include(input_key)) {
+    if (keys.prevent_defaults.include(input_code)) {
         event.preventDefault();
     }
     if (keys.hold_states.include(input_key)) {
