@@ -188,7 +188,7 @@ class IDE_logic {
 
    handle_input(key: string, cursor_position: row_col): row_col {
       if (this.selection !== null) {
-         this.delete_selection();
+         cursor_position = this.delete_selection();
          this.deselect();
       }
 
@@ -256,18 +256,11 @@ class IDE_logic {
    }
 
    select(start: row_col, finish: row_col): void {
-      if (equals(start, finish)) {
-         this.selection = null;
-         return;
-      }
-
       this.selection = { start, finish };
-
       IDE_UI.getInstance().render_selected_text(this.text_data, this.selection);
    }
 
    deselect(): void {
-      // IDE_UI.getInstance().remove_selected_text(this.text_data, this.selection);
       this.selection = null;
    }
 

@@ -1,5 +1,4 @@
 import { keys } from './keys.js';
-import { equals } from './types.js';
 import * as navigation from './keyboard_handle/navigation.js';
 import _env_ from './env.js';
 import IDE_UI from './ui/ide_ui.js';
@@ -157,7 +156,7 @@ class IDE_logic {
     }
     handle_input(key, cursor_position) {
         if (this.selection !== null) {
-            this.delete_selection();
+            cursor_position = this.delete_selection();
             this.deselect();
         }
         this.text_data[cursor_position.row] =
@@ -205,15 +204,10 @@ class IDE_logic {
         return smaller;
     }
     select(start, finish) {
-        if (equals(start, finish)) {
-            this.selection = null;
-            return;
-        }
         this.selection = { start, finish };
         IDE_UI.getInstance().render_selected_text(this.text_data, this.selection);
     }
     deselect() {
-        // IDE_UI.getInstance().remove_selected_text(this.text_data, this.selection);
         this.selection = null;
     }
     static sort_selection(pos0, pos1) {
