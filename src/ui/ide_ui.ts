@@ -1,5 +1,5 @@
 import Cursor from '../cursor.js';
-import _env_ from '../env.js';
+import env from '../env.js';
 import IDE_logic from '../ide_logic.js';
 import row_col from '../types.js';
 
@@ -15,7 +15,6 @@ class IDE_UI {
    private last_rendered_active_row: number = -1;
 
    private last_text: string[] = [''];
-   private visible_rows: [number, number] = [0, 0];
 
    private constructor() {
       // this.ide_logic ;
@@ -31,32 +30,31 @@ class IDE_UI {
    }
 
    render(): void {
-      if (_env_.marker_start_w === 0) {
-         _env_.marker_start_w =
-            document.getElementById('marker--0')!.getBoundingClientRect().width - _env_.marker_pr;
+      if (env.marker_start_w === 0) {
+         env.marker_start_w =
+            document.getElementById('marker--0')!.getBoundingClientRect().width - env.marker_pr;
       }
 
-      _env_.marker_w =
-         _env_.marker_start_w +
-         Math.floor(Math.log10(this.ide_logic!.text_data.length)) * _env_.char_width;
+      env.marker_w =
+         env.marker_start_w + Math.floor(Math.log10(this.ide_logic!.text_data.length)) * env.char_width;
 
-      document.documentElement.style.setProperty(`--marker-width`, `${_env_.marker_w}px`);
-      document.documentElement.style.setProperty(`--ordered-list-pl`, `${_env_.ol_pl}px`);
+      document.documentElement.style.setProperty(`--marker-width`, `${env.marker_w}px`);
+      document.documentElement.style.setProperty(`--ordered-list-pl`, `${env.ol_pl}px`);
 
       const diff = this.text_diff(this.last_text, this.ide_logic!.text_data);
 
       const fragment = document.createDocumentFragment();
 
-      const ol_h = _env_.line_height * (this.ide_logic!.text_data.length + 1);
+      const ol_h = env.line_height * (this.ide_logic!.text_data.length + 1);
       const ta_h = this.text_area_el.getBoundingClientRect().height;
       const scroll_top = this.text_area_el.scrollTop;
 
-      const [first, last] = this.get_visible_rows(ta_h, scroll_top, _env_.line_height);
+      const [first, last] = this.get_visible_rows();
 
-      this.ordered_list_el.style.height = `${_env_.line_height * (last - first)}px`;
-      this.ordered_list_el.style.paddingTop = `${_env_.line_height * first}px`;
+      this.ordered_list_el.style.height = `${env.line_height * (last - first)}px`;
+      this.ordered_list_el.style.paddingTop = `${env.line_height * first}px`;
 
-      let calc_pb = _env_.line_height * (this.ide_logic!.text_data.length - last);
+      let calc_pb = env.line_height * (this.ide_logic!.text_data.length - last);
       calc_pb >= 0 ? null : (calc_pb = 0);
       this.ordered_list_el.style.paddingBottom = `${calc_pb}px`;
 
@@ -113,7 +111,7 @@ class IDE_UI {
          line_dom.appendChild(text_dom);
       }
 
-      document.documentElement.style.setProperty(`--line-height`, `${_env_.line_height}px`);
+      document.documentElement.style.setProperty(`--line-height`, `${env.line_height}px`);
 
       text_dom.innerText = text;
 
@@ -146,31 +144,42 @@ class IDE_UI {
       return [start, Math.max(endOld, endNew) + 1];
    }
 
-   get_visible_rows(
-      outside_h: number,
-      scroll_top: number,
-      line_height: number
-   ): [start: number, finish: number] {
-      const rows_in_view = Math.floor(outside_h / line_height);
-      const scrolled_rows = Math.floor(scroll_top / line_height);
+   get_visible_rows(): [start: number, finish: number] {
+      const ide_window_h_px = this.text_area_el.getBoundingClientRect().height;
+      const scroll_top = this.text_area_el.scrollTop;
+
+      const max_rows_visible = Math.floor(ide_window_h_px / env.line_height);
+      const scrolled_rows = Math.floor(scroll_top / env.line_height);
 
       let min = scrolled_rows - 1;
       min = min < 0 ? 0 : min;
-      let max = scrolled_rows + rows_in_view;
+
+      let max = scrolled_rows + max_rows_visible;
+      max = max < 0 ? 0 : max;
 
       min = min > this.ide_logic!.text_data.length - 1 ? this.ide_logic!.text_data.length : min;
-      max = max > this.ide_logic!.text_data.length - 1 ? this.ide_logic!.text_data.length : max;
+      max = max > this.ide_logic!.text_data.length - 1 ? this.ide_logic!.text_data.length - 1 : max;
 
-      this.visible_rows = [min, max];
       return [min, max];
+   }
+
+   // todo left right
+   scroll(direction: 'up' | 'down', num: number): void {
+      console.log('[scroll]');
+      if (direction === 'up')
+         this.text_area_el.scroll(0, this.text_area_el.scrollTop - (num + 1) * env.line_height);
+      if (direction === 'down')
+         this.text_area_el.scroll(0, this.text_area_el.scrollTop + (num + 2) * env.line_height);
    }
 
    render_selected_text(text_data: string[], selection: { start: row_col; finish: row_col } | null) {
       if (selection === null) return;
+
       const sorted = IDE_logic.sort_selection(selection.start, selection.finish);
       const selected_rows_map = this.get_map_of_selection(text_data, sorted.smaller, sorted.bigger);
+      const [visible_start, visible_finish] = this.get_visible_rows();
 
-      for (let row = this.visible_rows[0]; row < this.visible_rows[1]; row++) {
+      for (let row = visible_start; row <= visible_finish; row++) {
          const selection_w = selected_rows_map[row];
          if (selection_w) {
             this.apply_style_one_selected_row(row, selection_w[0], selection_w[1]);
@@ -182,7 +191,9 @@ class IDE_UI {
 
    render_active_row(row: number): void {
       if (row === -1) return;
-      if (row < this.visible_rows[0] || row > this.visible_rows[1]) return;
+      const [visible_start, visible_finish] = this.get_visible_rows();
+
+      if (row < visible_start || row > visible_finish) return;
       // if (row === this.last_rendered_active_row) return;
 
       const new_selected_row_el = document.getElementById(`line--${row}`)!;
@@ -195,8 +206,8 @@ class IDE_UI {
 
    apply_style_one_selected_row(row_num: number, col0: number, col1: number) {
       col1 === 0 ? (col1 = 1) : null;
-      const indent = _env_.char_width * col0 + _env_.cursor_x_offset();
-      const width = _env_.char_width * (col1 - col0);
+      const indent = env.char_width * col0 + env.cursor_x_offset();
+      const width = env.char_width * (col1 - col0);
       const selected_el = document.getElementById(`select--${row_num}`)!;
 
       selected_el.style.left = `${indent}px`;

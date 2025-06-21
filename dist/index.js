@@ -49,6 +49,9 @@ function handle_key_down(event) {
     }
     const position = text_ide.handle_keypress(input_key, cursor.get_position());
     cursor.set_position(position);
+    const [start, finish] = IDE_UI.getInstance().get_visible_rows();
+    position.row > finish ? IDE_UI.getInstance().scroll('down', position.row - finish) : null;
+    position.row < start ? IDE_UI.getInstance().scroll('up', start - position.row) : null;
     IDE_UI.getInstance().render();
 }
 function handle_key_up(event) {

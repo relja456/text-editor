@@ -1,5 +1,5 @@
 import { keys } from './keys.js';
-import row_col, { equals } from './types.js';
+import row_col from './types.js';
 import * as navigation from './keyboard_handle/navigation.js';
 import _env_ from './env.js';
 import IDE_UI from './ui/ide_ui.js';
@@ -26,6 +26,12 @@ class IDE_logic {
 
       if (keys.is_down['control'] && keys.arrow.include(key))
          return navigation.handle_control_arrow(this, key, cursor_position);
+
+      const [min_visible, max_visible] = IDE_UI.getInstance().get_visible_rows();
+      const row = cursor_position.row;
+
+      if (row < min_visible) IDE_UI.getInstance().scroll('up', min_visible - row);
+      if (row > max_visible) IDE_UI.getInstance().scroll('down', row - max_visible);
 
       if (keys.arrow.include(key)) return navigation.handle_arrow(this, key, cursor_position);
 
@@ -256,6 +262,7 @@ class IDE_logic {
    }
 
    select(start: row_col, finish: row_col): void {
+      // console.log('[selection]', { start, finish });
       this.selection = { start, finish };
       IDE_UI.getInstance().render_selected_text(this.text_data, this.selection);
    }

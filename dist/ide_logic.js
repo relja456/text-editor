@@ -21,6 +21,12 @@ class IDE_logic {
             return cursor_position;
         if (keys.is_down['control'] && keys.arrow.include(key))
             return navigation.handle_control_arrow(this, key, cursor_position);
+        const [min_visible, max_visible] = IDE_UI.getInstance().get_visible_rows();
+        const row = cursor_position.row;
+        if (row < min_visible)
+            IDE_UI.getInstance().scroll('up', min_visible - row);
+        if (row > max_visible)
+            IDE_UI.getInstance().scroll('down', row - max_visible);
         if (keys.arrow.include(key))
             return navigation.handle_arrow(this, key, cursor_position);
         if (keys.is_down['control'] && keys.control_actions.include(key))
@@ -204,6 +210,7 @@ class IDE_logic {
         return smaller;
     }
     select(start, finish) {
+        // console.log('[selection]', { start, finish });
         this.selection = { start, finish };
         IDE_UI.getInstance().render_selected_text(this.text_data, this.selection);
     }
