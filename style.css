@@ -97,6 +97,7 @@ body {
 
 #cursor {
    position: relative;
+   margin-top: calc(-1 * var(--line-height));
    height: 18px;
    width: 2px;
    top: 100px;

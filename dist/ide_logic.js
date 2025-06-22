@@ -1,4 +1,5 @@
 import { keys } from './keys.js';
+import { equals } from './types.js';
 import * as navigation from './keyboard_handle/navigation.js';
 import _env_ from './env.js';
 import IDE_UI from './ui/ide_ui.js';
@@ -21,12 +22,6 @@ class IDE_logic {
             return cursor_position;
         if (keys.is_down['control'] && keys.arrow.include(key))
             return navigation.handle_control_arrow(this, key, cursor_position);
-        const [min_visible, max_visible] = IDE_UI.getInstance().get_visible_rows();
-        const row = cursor_position.row;
-        if (row < min_visible)
-            IDE_UI.getInstance().scroll('up', min_visible - row);
-        if (row > max_visible)
-            IDE_UI.getInstance().scroll('down', row - max_visible);
         if (keys.arrow.include(key))
             return navigation.handle_arrow(this, key, cursor_position);
         if (keys.is_down['control'] && keys.control_actions.include(key))
@@ -50,11 +45,11 @@ class IDE_logic {
             case 'x':
                 return this.handle_cut(cursor_position);
             case 'a':
-                return this.handle_select_all(cursor_position);
+                return this.handle_select_all();
         }
-        return { row: 1, col: 1 };
+        return cursor_position;
     }
-    handle_select_all(cursor_position) {
+    handle_select_all() {
         this.selection = {
             start: { row: 0, col: 0 },
             finish: {
@@ -66,17 +61,30 @@ class IDE_logic {
         return this.selection.finish;
     }
     handle_copy(cursor_position) {
-        this.selection === null
+        this.selection === null || equals(this.selection.start, this.selection.finish)
             ? (this.clipboard = [this.text_data[cursor_position.row]])
             : (this.clipboard = this.get_selected_text(this.text_data, this.selection));
-        console.log('copied text: ', this.clipboard);
-        console.log(this.selection);
+        console.log('[Text copied]', this.clipboard);
     }
     handle_cut(cursor_position) {
         this.handle_copy(cursor_position);
-        if (this.selection === null) {
-            this.text_data[cursor_position.row] = '';
-            return { row: cursor_position.row, col: 0 };
+        const isNoSelection = this.selection === null || equals(this.selection.start, this.selection.finish);
+        if (isNoSelection) {
+            const isLastLine = cursor_position.row === this.text_data.length - 1;
+            const isFirstLine = cursor_position.row === 0;
+            this.text_data.splice(cursor_position.row, 1);
+            if (isFirstLine) {
+                this.text_data[0] = '';
+            }
+            else if (isLastLine) {
+                return {
+                    row: cursor_position.row - 1,
+                    col: this.text_data[cursor_position.row - 1].length,
+                };
+            }
+            else {
+                return { row: cursor_position.row, col: 0 };
+            }
         }
         return this.delete_selection();
     }

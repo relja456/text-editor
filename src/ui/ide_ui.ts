@@ -12,10 +12,6 @@ class IDE_UI {
    private text_area_el: HTMLElement;
    private ordered_list_el: HTMLElement;
 
-   private last_rendered_active_row: number = -1;
-
-   private last_text: string[] = [''];
-
    private constructor() {
       // this.ide_logic ;
       this.text_area_el = document.getElementById('text-area')!;
@@ -41,15 +37,15 @@ class IDE_UI {
       document.documentElement.style.setProperty(`--marker-width`, `${env.marker_w}px`);
       document.documentElement.style.setProperty(`--ordered-list-pl`, `${env.ol_pl}px`);
 
-      const diff = this.text_diff(this.last_text, this.ide_logic!.text_data);
-
       const fragment = document.createDocumentFragment();
 
       const ol_h = env.line_height * (this.ide_logic!.text_data.length + 1);
       const ta_h = this.text_area_el.getBoundingClientRect().height;
-      const scroll_top = this.text_area_el.scrollTop;
 
-      const [first, last] = this.get_visible_rows();
+      const [min, max] = this.get_visible_rows();
+
+      const first = Math.floor(min);
+      const last = Math.ceil(max);
 
       this.ordered_list_el.style.height = `${env.line_height * (last - first)}px`;
       this.ordered_list_el.style.paddingTop = `${env.line_height * first}px`;
@@ -73,8 +69,6 @@ class IDE_UI {
       }
 
       this.ordered_list_el.appendChild(fragment);
-
-      this.last_text = JSON.parse(JSON.stringify(this.ide_logic!.text_data));
 
       this.render_selected_text(this.ide_logic!.text_data, this.ide_logic!.selection);
       this.render_active_row(this.cursor!.row);
@@ -119,42 +113,18 @@ class IDE_UI {
    }
    // }
 
-   text_diff(old_text: string[], new_text: string[]): [start: number, finish: number] | null {
-      let start = 0;
-      let endOld = old_text.length - 1;
-      let endNew = new_text.length - 1;
-
-      // Find common prefix
-      while (start <= endOld && start <= endNew && old_text[start] === new_text[start]) {
-         start++;
-      }
-
-      // Find common suffix
-      while (endOld >= start && endNew >= start && old_text[endOld] === new_text[endNew]) {
-         endOld--;
-         endNew--;
-      }
-
-      // If no difference, return null
-      if (start > endOld && start > endNew) {
-         return null;
-      }
-
-      // Return the range of difference
-      return [start, Math.max(endOld, endNew) + 1];
-   }
-
-   get_visible_rows(): [start: number, finish: number] {
+   get_visible_rows(): [min: number, max: number] {
+      console.log('get_visible_rows: [Visible rows]');
       const ide_window_h_px = this.text_area_el.getBoundingClientRect().height;
       const scroll_top = this.text_area_el.scrollTop;
 
-      const max_rows_visible = Math.floor(ide_window_h_px / env.line_height);
-      const scrolled_rows = Math.floor(scroll_top / env.line_height);
+      const max_rows_visible = ide_window_h_px / env.line_height;
+      const scrolled_rows = scroll_top / env.line_height;
 
-      let min = scrolled_rows - 1;
+      let min = scrolled_rows;
       min = min < 0 ? 0 : min;
 
-      let max = scrolled_rows + max_rows_visible;
+      let max = scrolled_rows + max_rows_visible - 1;
       max = max < 0 ? 0 : max;
 
       min = min > this.ide_logic!.text_data.length - 1 ? this.ide_logic!.text_data.length : min;
@@ -167,9 +137,9 @@ class IDE_UI {
    scroll(direction: 'up' | 'down', num: number): void {
       console.log('[scroll]');
       if (direction === 'up')
-         this.text_area_el.scroll(0, this.text_area_el.scrollTop - (num + 1) * env.line_height);
+         this.text_area_el.scroll(0, this.text_area_el.scrollTop - num * env.line_height);
       if (direction === 'down')
-         this.text_area_el.scroll(0, this.text_area_el.scrollTop + (num + 2) * env.line_height);
+         this.text_area_el.scroll(0, this.text_area_el.scrollTop + num * env.line_height);
    }
 
    render_selected_text(text_data: string[], selection: { start: row_col; finish: row_col } | null) {
@@ -177,7 +147,11 @@ class IDE_UI {
 
       const sorted = IDE_logic.sort_selection(selection.start, selection.finish);
       const selected_rows_map = this.get_map_of_selection(text_data, sorted.smaller, sorted.bigger);
-      const [visible_start, visible_finish] = this.get_visible_rows();
+
+      const [min, max] = this.get_visible_rows();
+
+      const visible_start = Math.floor(min);
+      const visible_finish = Math.ceil(max);
 
       for (let row = visible_start; row <= visible_finish; row++) {
          const selection_w = selected_rows_map[row];
@@ -191,7 +165,11 @@ class IDE_UI {
 
    render_active_row(row: number): void {
       if (row === -1) return;
-      const [visible_start, visible_finish] = this.get_visible_rows();
+
+      const [min, max] = this.get_visible_rows();
+
+      const visible_start = Math.floor(min);
+      const visible_finish = Math.ceil(max);
 
       if (row < visible_start || row > visible_finish) return;
       // if (row === this.last_rendered_active_row) return;
@@ -200,8 +178,6 @@ class IDE_UI {
       if (new_selected_row_el === null) return;
 
       new_selected_row_el.className = 'line-selected';
-
-      this.last_rendered_active_row = row;
    }
 
    apply_style_one_selected_row(row_num: number, col0: number, col1: number) {
